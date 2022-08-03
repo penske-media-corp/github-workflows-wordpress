@@ -1,22 +1,7 @@
 name: Coding Standards
 
 on:
-  push:
-  pull_request:
-    paths:
-      # Any change to a PHP or JavaScript file should run checks.
-      - '**.js'
-      - '**.php'
-      # These files configure NPM. Changes could affect the outcome.
-      - 'package*.json'
-      # These files configure Composer. Changes could affect the outcome.
-      - 'composer.*'
-      # This file configures PHPCS. Changes could affect the outcome.
-      - 'phpcs.xml'
-      # Changes to workflow files should always verify all workflows are successful.
-      # TODO: needed when using reusable workflows?
-      # - '.github/workflows/*.yml'
-  workflow_dispatch:
+  workflow_call:
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:

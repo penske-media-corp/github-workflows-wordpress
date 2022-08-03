@@ -1,8 +1,7 @@
 name: PMC WordPress workflows
 
 on:
-  pull_request:
-  push:
+  workflow_call:
 
 jobs:
   coding-standards:
