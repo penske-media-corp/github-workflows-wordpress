@@ -1,0 +1,43 @@
+name: Unit Tests
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  phpunit:
+    name: PHPUnit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
+          echo "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}" | base64 --decode --ignore-garbage > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+          ssh-keygen -lf ~/.ssh/id_rsa
+
+      - name: Add shared utilities
+        run: |
+          # TODO: consider if this is the best place for it.
+          git clone -b add/support-default-branch-not-master git@bitbucket.org:penskemediacorp/pmc-docker-common-use-shell-scripts.git /usr/local/bin/pmc
+          echo /usr/local/bin/pmc/bin >> $GITHUB_PATH
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # Needed to produce list of changed files compared to default branch.
+          fetch-depth: 0
