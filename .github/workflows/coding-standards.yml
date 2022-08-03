@@ -2,6 +2,9 @@ name: Coding Standards
 
 on:
   workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
 
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
