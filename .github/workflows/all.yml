@@ -1,0 +1,9 @@
+name: PMC WordPress workflows
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  coding-standards:
+    uses: ./.github/workflows/coding-standards.yml
