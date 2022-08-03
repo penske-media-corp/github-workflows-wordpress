@@ -30,7 +30,7 @@ jobs:
     name: PHP coding standards
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository !== 'penske-media-corp/github-workflows-wordpress' }}
+    if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
       - name: Set up SSH key
