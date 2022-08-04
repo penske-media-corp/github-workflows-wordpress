@@ -40,7 +40,7 @@ jobs:
         uses: ethitter/test-composite-action@main
         with:
           git_checkout_fetch_depth: 0
-          phpcs: 1
+          phpcs: '1'
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Run PHPCS on all Core files
