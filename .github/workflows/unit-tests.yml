@@ -29,6 +29,20 @@ jobs:
           phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
+      # TODO: install WP. We also need some extra containers.
+
+      - name: Install PHPUnit
+        run: |
+          if [[ $(php -v) =~ "PHP 8." ]]; then
+            composer global require "phpunit/phpunit=9.*"
+          elif [[ $(php -v) =~ "PHP 7." ]]; then
+            composer global require "phpunit/phpunit=6.1.*"
+          fi
+    
+          composer global require yoast/phpunit-polyfills
+
+      # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
+      # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
       - name: Run PHPUnit
         run: phpunit
 
