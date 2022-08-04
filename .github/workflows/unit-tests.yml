@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: ethitter/test-composite-action@main
         with:
-          ssh_key_encoded: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
+          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Checkout repository
         uses: actions/checkout@v3
