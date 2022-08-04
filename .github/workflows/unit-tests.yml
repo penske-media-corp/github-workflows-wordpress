@@ -28,3 +28,9 @@ jobs:
           git_checkout_fetch_depth: 0
           phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+
+      - name: Run PHPUnit
+        run: phpunit
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
