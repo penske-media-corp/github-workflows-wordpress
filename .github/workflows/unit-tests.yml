@@ -24,10 +24,11 @@ jobs:
     steps:
       - uses: ethitter/test-composite-action@main
         with:
+          git_checkout_fetch_depth: '0'
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          # Needed to produce list of changed files compared to default branch.
-          fetch-depth: 0
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v3
+#        with:
+#          # Needed to produce list of changed files compared to default branch.
+#          fetch-depth: 0
