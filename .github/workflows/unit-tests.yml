@@ -22,13 +22,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
-      - name: Set up SSH key
-        run: ./scripts/set-up-ssh.sh
-        shell: bash
-
-      - name: Add shared utilities
-        run: ./scripts/add-shared-utilities.sh
-        shell: bash
+      - uses: ethitter/test-composite-action
+        with:
+          ssh_key_encoded: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
 
       - name: Checkout repository
         uses: actions/checkout@v3
