@@ -23,18 +23,12 @@ jobs:
 
     steps:
       - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan bitbucket.org >> ~/.ssh/known_hosts
-          echo "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}" | base64 --decode --ignore-garbage > ~/.ssh/id_rsa
-          chmod 400 ~/.ssh/id_rsa
-          ssh-keygen -lf ~/.ssh/id_rsa
+        run: ./scripts/set-up-ssh.sh
+        shell: bash
 
       - name: Add shared utilities
-        run: |
-          # TODO: consider if this is the best place for it.
-          git clone -b add/support-default-branch-not-master git@bitbucket.org:penskemediacorp/pmc-docker-common-use-shell-scripts.git /usr/local/bin/pmc
-          echo /usr/local/bin/pmc/bin >> $GITHUB_PATH
+        run: ./scripts/add-shared-utilities.sh
+        shell: bash
 
       - name: Checkout repository
         uses: actions/checkout@v3
