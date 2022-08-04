@@ -26,5 +26,5 @@ jobs:
         uses: ethitter/test-composite-action@main
         with:
           git_checkout_fetch_depth: 0
-          phpunit: '1'
+          phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
