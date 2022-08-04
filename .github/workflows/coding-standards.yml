@@ -36,7 +36,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
-      - uses: ethitter/test-composite-action
+      - uses: ethitter/test-composite-action@main
         with:
           ssh_key_encoded: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
 
