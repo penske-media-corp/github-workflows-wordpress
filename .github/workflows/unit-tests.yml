@@ -38,6 +38,15 @@ jobs:
           phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
+      - name: Set environment variables
+        run: |
+          echo 'TMPDIR=/tmp' >> $GITHUB_ENV
+          echo 'WP_CORE_DIR=/tmp/wp' >> $GITHUB_ENV
+          echo 'WP_TESTS_DIR=/tmp/wp-tests-lib' >> $GITHUB_ENV
+          # TODO: condition this on whether or not we're testing `pmc-plugins`.
+          echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/.cache/www/html/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+        shell: bash
+
       # TODO: install WP. We also need some extra containers.
       # TODO: cache composer install.
 
