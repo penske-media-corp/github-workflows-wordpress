@@ -31,13 +31,6 @@ jobs:
           MYSQL_DATABASE: wordpress
 
     steps:
-      - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
-        with:
-          git_checkout_fetch_depth: 0
-          phpunit: 1
-          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
-
       - name: Set environment variables
         run: |
           echo 'TMPDIR=/tmp' >> $GITHUB_ENV
@@ -46,6 +39,13 @@ jobs:
           # TODO: condition this on whether or not we're testing `pmc-plugins`.
           echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/.cache/www/html/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
         shell: bash
+
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        with:
+          git_checkout_fetch_depth: 0
+          phpunit: 1
+          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       # TODO: cache composer install.
 
@@ -73,15 +73,15 @@ jobs:
       - name: Link Core Tech
         run: |
           WP_CONTENT_SOURCE_DIR="${GITHUB_WORKSPACE}/.cache/www/html/wp-content"
-          WP_CONTENT_TARGET_DIR=/tmp/wp/wp-content
+          WP_CONTENT_TARGET_DIR="${WP_CORE_DIR}/wp-content"
           ln -s "${WP_CONTENT_SOURCE_DIR}/mu-plugins/vip-go-mu-plugins-built" "${WP_CONTENT_TARGET_DIR}/mu-plugins"
           
           rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-vip-go-plugins" "${WP_CONTENT_TARGET_DIR}/plugins"
-          ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}"/plugins/pmc-plugins"
+          ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
           
           mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
-          cp /tmp/plugin-loader.php "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
+          cp "${TMPDIR}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
           
           if [[ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]]; then
             rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
