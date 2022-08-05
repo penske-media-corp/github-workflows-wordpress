@@ -57,7 +57,10 @@ jobs:
           SCRIPT_PATH="/usr/local/bin/install-wp-tests"
           curl -o "${SCRIPT_PATH}" https://raw.githubusercontent.com/wp-cli/scaffold-command/master/templates/install-wp-tests.sh
           chmod +x "${SCRIPT_PATH}"
-          "${SCRIPT_PATH}" wordpress root root mysql
+          # TODO: set WP paths?
+          # TODO: symlink or rsync plugins etc.
+          # TODO: client-mu-plugins loader.
+          "${SCRIPT_PATH}" wordpress root root localhost
 
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
