@@ -30,6 +30,18 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: wordpress
 
+    strategy:
+      fail-fast: false
+      matrix:
+        continue_on_error: false
+        php: [ '7.4', '8.0' ]
+        wordpress: [ 'latest', 'nightly' ]
+        include:
+          - php: '8.0'
+            continue_on_error: true
+          - wordpress: 'nightly'
+            continue_on_error: true
+
     steps:
       - name: Set environment variables
         run: |
@@ -37,13 +49,14 @@ jobs:
           echo 'WP_CORE_DIR=/tmp/wp' >> $GITHUB_ENV
           echo 'WP_TESTS_DIR=/tmp/wp-tests-lib' >> $GITHUB_ENV
           # TODO: condition this on whether or not we're testing `pmc-plugins`.
-          echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/.cache/www/html/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+          echo "PMC_PHPUNIT_BOOTSTRAP=${WP_CORE_DIR}/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
         shell: bash
 
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
           git_checkout_fetch_depth: 0
+          php_version: ${{ matrix.php }}
           phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
@@ -68,7 +81,7 @@ jobs:
           # TODO: set WP paths?
           # TODO: symlink or rsync plugins etc.
           # TODO: client-mu-plugins loader.
-          yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1
+          yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1 ${{ matrix.wordpress }}
 
       - name: Link Core Tech
         run: |
@@ -91,6 +104,7 @@ jobs:
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
       - name: Run PHPUnit
+        continue-on-error: ${{ matrix.continue_on_error }}
         run: |
           phpunit
 
