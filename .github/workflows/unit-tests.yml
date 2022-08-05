@@ -51,19 +51,6 @@ jobs:
             continue_on_error: true
 
     steps:
-      - name: Set environment variables
-        run: |
-          echo 'TMPDIR=/tmp' >> $GITHUB_ENV
-          echo 'WP_CORE_DIR=/tmp/wp' >> $GITHUB_ENV
-          echo 'WP_TESTS_DIR=/tmp/wp-tests-lib' >> $GITHUB_ENV
-
-          if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
-            echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
-          else
-            echo 'PMC_PHPUNIT_BOOTSTRAP=/tmp/wp/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php' >> $GITHUB_ENV
-          fi
-        shell: bash
-
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
@@ -71,6 +58,19 @@ jobs:
           php_version: ${{ matrix.php }}
           phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+
+      - name: Set environment variables
+        run: |
+          echo "TMPDIR=${RUNNER_TEMP}" >> $GITHUB_ENV
+          echo "WP_CORE_DIR=${RUNNER_TEMP}/wp/core" >> $GITHUB_ENV
+          echo "WP_TESTS_DIR=${RUNNER_TEMP}/wp/tests-lib" >> $GITHUB_ENV
+
+          if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
+            echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+          else
+            echo "PMC_PHPUNIT_BOOTSTRAP=${RUNNER_TEMP}/wp/core/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+          fi
+        shell: bash
 
       # TODO: cache composer install.
 
@@ -90,9 +90,6 @@ jobs:
           SCRIPT_PATH="/usr/local/bin/install-wp-tests"
           curl -o "${SCRIPT_PATH}" https://raw.githubusercontent.com/wp-cli/scaffold-command/master/templates/install-wp-tests.sh
           chmod +x "${SCRIPT_PATH}"
-          # TODO: set WP paths?
-          # TODO: symlink or rsync plugins etc.
-          # TODO: client-mu-plugins loader.
           yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1 ${{ matrix.wordpress }}
 
       - name: Link Core Tech
@@ -106,7 +103,7 @@ jobs:
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
 
           mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
-          cp "${TMPDIR}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
+          cp "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
 
           if [[ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]]; then
             rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
