@@ -47,7 +47,6 @@ jobs:
           echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/.cache/www/html/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
         shell: bash
 
-      # TODO: install WP. We also need some extra containers.
       # TODO: cache composer install.
 
       - name: Install PHPUnit
@@ -71,12 +70,28 @@ jobs:
           # TODO: client-mu-plugins loader.
           yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1
 
+      - name: Link Core Tech
+        run: |
+          WP_CONTENT_SOURCE_DIR="${GITHUB_WORKSPACE}/.cache/www/html/wp-content"
+          WP_CONTENT_TARGET_DIR=/tmp/wp/wp-content
+          ln -s "${WP_CONTENT_SOURCE_DIR}/mu-plugins/vip-go-mu-plugins-built" "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+          
+          rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
+          ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-vip-go-plugins" "${WP_CONTENT_TARGET_DIR}/plugins"
+          ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}"/plugins/pmc-plugins"
+          
+          mkdir "${WP_CONTENT_TARGET_DIR/client-mu-plugins"
+          cp /tmp/plugin-loader.php "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
+          
+          if [ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]; then
+            rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
+            ln -s "${WP_CONTENT_SOURCE_DIR}/themes" "${WP_CONTENT_TARGET_DIR}/themes"
+          fi
+
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
       - name: Run PHPUnit
         run: |
-          cat /tmp/wp-tests-lib/wp-tests-config.php
-          mysql --user=root --password=root --host=127.0.0.1 --protocol=tcp '--execute=show databases;'
           phpunit
 
       - name: Ensure version-controlled files are not modified during the tests
