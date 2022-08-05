@@ -69,15 +69,14 @@ jobs:
           # TODO: set WP paths?
           # TODO: symlink or rsync plugins etc.
           # TODO: client-mu-plugins loader.
-          yes | "${SCRIPT_PATH}" wordpress root root localhost
+          yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1
 
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
       - name: Run PHPUnit
         run: |
           cat /tmp/wp-tests-lib/wp-tests-config.php
-          mysql --user=root --password=root --host=localhost --protocol=tcp '--execute=show databases;'
-          mysql --user=root --password=root --host=localhost --protocol=tcp '--execute=show tables from wordpress;'
+          mysql --user=root --password=root --host=127.0.0.1 --protocol=tcp '--execute=show databases;'
           phpunit
 
       - name: Ensure version-controlled files are not modified during the tests
