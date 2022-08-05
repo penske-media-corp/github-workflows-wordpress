@@ -33,10 +33,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        continue_on_error: [ false ]
-        php: [ '7.4', '8.0' ]
-        wordpress: [ 'latest', 'nightly' ]
         include:
+          - php: '7.4'
+            wordpress: 'latest'
+            continue_on_error: false
           - php: '7.4'
             wordpress: 'nightly'
             continue_on_error: true
