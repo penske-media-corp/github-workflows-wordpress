@@ -53,8 +53,12 @@ jobs:
           echo 'TMPDIR=/tmp' >> $GITHUB_ENV
           echo 'WP_CORE_DIR=/tmp/wp' >> $GITHUB_ENV
           echo 'WP_TESTS_DIR=/tmp/wp-tests-lib' >> $GITHUB_ENV
-          # TODO: condition this on whether or not we're testing `pmc-plugins`.
-          echo "PMC_PHPUNIT_BOOTSTRAP=${WP_CORE_DIR}/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+
+          if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
+            echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+          else
+            echo 'PMC_PHPUNIT_BOOTSTRAP=/tmp/wp/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php' >> $GITHUB_ENV
+          fi
         shell: bash
 
       - name: Prepare environment
@@ -74,7 +78,7 @@ jobs:
           elif [[ $(php -v) =~ "PHP 7." ]]; then
             composer global require "phpunit/phpunit=6.1.*"
           fi
-    
+
           composer global require yoast/phpunit-polyfills
 
         # TODO: cache this using version number.
@@ -93,21 +97,19 @@ jobs:
           WP_CONTENT_SOURCE_DIR="${GITHUB_WORKSPACE}/.cache/www/html/wp-content"
           WP_CONTENT_TARGET_DIR="${WP_CORE_DIR}/wp-content"
           ln -s "${WP_CONTENT_SOURCE_DIR}/mu-plugins/vip-go-mu-plugins-built" "${WP_CONTENT_TARGET_DIR}/mu-plugins"
-          
+
           rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-vip-go-plugins" "${WP_CONTENT_TARGET_DIR}/plugins"
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
-          
+
           mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
           cp "${TMPDIR}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
-          
+
           if [[ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]]; then
             rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
             ln -s "${WP_CONTENT_SOURCE_DIR}/themes" "${WP_CONTENT_TARGET_DIR}/themes"
           fi
 
-      # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
-      # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
