@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: ethitter/test-composite-action@main
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
           git_checkout_fetch_depth: 0
           phpcs: 1

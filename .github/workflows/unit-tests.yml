@@ -23,13 +23,14 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: ethitter/test-composite-action@main
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
           git_checkout_fetch_depth: 0
           phpunit: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       # TODO: install WP. We also need some extra containers.
+      # TODO: cache composer install.
 
       - name: Install PHPUnit
         run: |
