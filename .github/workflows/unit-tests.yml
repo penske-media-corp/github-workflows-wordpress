@@ -72,18 +72,6 @@ jobs:
           fi
         shell: bash
 
-      # TODO: cache composer install.
-
-      - name: Install PHPUnit
-        run: |
-          if [[ $(php -v) =~ "PHP 8." ]]; then
-            composer global require "phpunit/phpunit=9.*"
-          elif [[ $(php -v) =~ "PHP 7." ]]; then
-            composer global require "phpunit/phpunit=6.1.*"
-          fi
-
-          composer global require yoast/phpunit-polyfills
-
         # TODO: cache this using version number.
       - name: Install WordPress
         run: |
