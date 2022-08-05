@@ -74,7 +74,10 @@ jobs:
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
       - name: Run PHPUnit
-        run: phpunit
+        run: |
+          cat /tmp/wp-tests-lib/wp-tests-config.php
+          mysql --user=root --password=root --host=localhost --protocol=tcp '--execute=show databases;'
+          phpunit
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
