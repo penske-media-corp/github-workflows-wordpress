@@ -21,6 +21,15 @@ jobs:
     timeout-minutes: 20
     if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
+    services:
+      mysql:
+        image: mariadb:latest
+        ports:
+          - "3306:3306"
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
@@ -41,6 +50,14 @@ jobs:
           fi
     
           composer global require yoast/phpunit-polyfills
+
+        # TODO: cache this using version number.
+      - name: Install WordPress
+        run: |
+          SCRIPT_PATH="/usr/local/bin/install-wp-tests"
+          curl -o "${SCRIPT_PATH}" https://raw.githubusercontent.com/wp-cli/scaffold-command/master/templates/install-wp-tests.sh
+          chmod +x "${SCRIPT_PATH}"
+          "${SCRIPT_PATH}" wordpress root root mysql
 
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
