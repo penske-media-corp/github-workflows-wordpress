@@ -60,7 +60,7 @@ jobs:
           # TODO: set WP paths?
           # TODO: symlink or rsync plugins etc.
           # TODO: client-mu-plugins loader.
-          "${SCRIPT_PATH}" wordpress root root localhost
+          yes | "${SCRIPT_PATH}" wordpress root root localhost
 
       # TODO: we'll need a matrix of PHP versions for this one, and a flag for which versions can fail.
       # TODO: we'll also need a matrix for WP versions, and a flag for which versions can fail.
