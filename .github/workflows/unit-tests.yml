@@ -72,8 +72,25 @@ jobs:
           fi
         shell: bash
 
-        # TODO: cache this using version number.
+      - name: Get version cache key
+        id: get-version-cache-key
+        run: |
+          if [[ "${{ matrix.wordpress }}" == 'latest' ]]; then
+            echo "::set-output name=version::$(curl https://api.wordpress.org/core/version-check/1.7/ | jq '.offers[0].version')"
+          else
+            echo "::set-output name=version::$(/bin/date -u "+%F")"
+          fi
+        shell: bash
+
+      - name: Cache WordPress install
+        id: cache-wordpress-install
+        uses: actions/cache@v3
+        with:
+          path: "${TMPDIR}/wp"
+          key: ${{ runner.os }}-version-${{ steps.get-version-cache-key.outputs.version }}-php-${{ matrix.php }}-wp-${{ matrix.wordpress }}-wordpress-install
+
       - name: Install WordPress
+        if: ${{ steps.cache-wordpress-install.outputs.cache-hit != 'true' }}
         run: |
           SCRIPT_PATH="/usr/local/bin/install-wp-tests"
           curl -o "${SCRIPT_PATH}" https://raw.githubusercontent.com/wp-cli/scaffold-command/master/templates/install-wp-tests.sh
