@@ -109,8 +109,10 @@ jobs:
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-vip-go-plugins" "${WP_CONTENT_TARGET_DIR}/plugins"
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
 
-          mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
-          cp "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
+          if [[ ! -d "${WP_CONTENT_TARGET_DIR}/client-mu-plugins" ]]; then
+            mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
+          fi
+          mv "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins/plugin-loader.php"
 
           if [[ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]]; then
             rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
