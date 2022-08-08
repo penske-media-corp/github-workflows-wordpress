@@ -33,21 +33,12 @@ jobs:
 
       - name: Run PHPCS
         run: |
+          # TODO: should any of this be lifted to the composite action?
           export PMC_SKIP_INIT_BUILD=true
           export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
           . pmc-manifest
 
           . pmc-test-phpcs
-
-#          echo "$PHP_FILES" > /tmp/files-to-scan
-#
-#          phpcs -s --file-list=/tmp/files-to-scan --report=json --report-json=/tmp/phpcs.json || true
-#
-#          diffFilter --phpcsStrict "${PMC_COMMIT_DIFF_FILE}" /tmp/phpcs.json 100 2>&1
-#
-#          # TODO: make this work, since above will exit. Also should be conditioned on there being errors to stop the pipeline.
-#          echo '************************'
-#          jq '.files' < /tmp/phpcs.json
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code

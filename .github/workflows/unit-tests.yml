@@ -126,6 +126,9 @@ jobs:
           export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
           . pmc-manifest
 
+          # TODO: artifacts.
+          export PMC_ARTIFACTS=true
+          # TODO: second run like we do in Bitbucket?
           . pmc-test-phpunit
 
       - name: Ensure version-controlled files are not modified during the tests
