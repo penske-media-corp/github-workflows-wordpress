@@ -36,8 +36,8 @@ jobs:
           export PMC_SKIP_INIT_BUILD=true
           export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
           . pmc-manifest
-          
-          pmc-test-phpcs
+
+          . pmc-test-phpcs
 
 #          echo "$PHP_FILES" > /tmp/files-to-scan
 #
