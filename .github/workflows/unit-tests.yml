@@ -133,3 +133,9 @@ jobs:
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
+
+      - name: Capture coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: phpunit-coverage-${{ matrix.php }}-${{ matrix.wordpress }}
+          path: ${{ github.workspace }}/artifacts
