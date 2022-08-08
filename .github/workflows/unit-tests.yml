@@ -122,7 +122,11 @@ jobs:
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
-          phpunit
+          export PMC_SKIP_INIT_BUILD=true
+          export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
+          . pmc-manifest
+
+          . pmc-test-phpcs
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
