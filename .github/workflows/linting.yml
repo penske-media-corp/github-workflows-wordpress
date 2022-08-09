@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   php:
-    name: PHP linting
+    name: PHP
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
