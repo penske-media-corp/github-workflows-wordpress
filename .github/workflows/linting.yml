@@ -1,0 +1,44 @@
+name: Linting
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        with:
+          git_checkout_fetch_depth: 0
+          phpcs: 1
+          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+
+      - name: Run PHPCS
+        run: |
+          # TODO: should any of this be lifted to the composite action?
+          export PMC_SKIP_INIT_BUILD=true
+          export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
+          . pmc-manifest
+
+          . pmc-test-phplint
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
