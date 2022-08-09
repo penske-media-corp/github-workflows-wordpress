@@ -24,15 +24,6 @@ jobs:
     timeout-minutes: 20
     if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
-    services:
-      mysql:
-        image: mysql:latest
-        ports:
-          - "3306:3306"
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: wordpress
-
     strategy:
       fail-fast: false
       matrix:
@@ -71,6 +62,9 @@ jobs:
             echo "PMC_PHPUNIT_BOOTSTRAP=${RUNNER_TEMP}/wp/core/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
           fi
         shell: bash
+
+      - name: Start MySQL
+        run: sudo systemctl start mysql.service
 
       - name: Set version cache key and cache path
         id: set-cache-info
