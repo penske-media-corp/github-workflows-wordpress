@@ -51,3 +51,6 @@ jobs:
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
+
+      - name: Debug
+        run: echo "${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}"
