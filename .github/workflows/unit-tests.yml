@@ -6,13 +6,6 @@ on:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
 
-# Cancels all previous workflow runs for pull requests that have not completed.
-#concurrency:
-  # The concurrency group contains the workflow name and the branch name for pull requests
-  # or the commit hash for any other events.
-#  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
-#  cancel-in-progress: true
-
 permissions:
   contents: read
 
@@ -131,6 +124,25 @@ jobs:
 
       - name: Capture coverage reports
         uses: actions/upload-artifact@v3
+        with:
+          name: phpunit-coverage-${{ matrix.php }}-${{ matrix.wordpress }}
+          path: ${{ github.workspace }}/artifacts
+
+  sonarcloud:
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: phpunit
+    # TODO: need an `if` to limit this to the "main" PHPUnit run.
+
+    steps:
+      # TODO: check out artifacts.
+      - name: Test
+        run: echo "Hello world"
+
+      # TODO: this will fail, but how do we get the name DRYly?
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
         with:
           name: phpunit-coverage-${{ matrix.php }}-${{ matrix.wordpress }}
           path: ${{ github.workspace }}/artifacts

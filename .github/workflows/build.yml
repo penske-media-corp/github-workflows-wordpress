@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  assets:
+    name: Assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: false
+
+    steps:
+      - name: Build static assets
+        run: |
+          echo "Not implemented"
+          exit 0
