@@ -53,4 +53,4 @@ jobs:
         run: git diff --exit-code
 
       - name: Debug
-        run: echo "${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}"
+        run: echo "${{ github.workflow }}-${{ github.action }}-${{ github.job }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}"
