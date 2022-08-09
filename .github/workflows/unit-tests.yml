@@ -64,7 +64,9 @@ jobs:
         shell: bash
 
       - name: Start MySQL
-        run: sudo systemctl start mysql.service
+        run: |
+          sudo systemctl start mysql.service
+          mysql --user=root --password=root --host=127.0.0.1 --protocol=tcp '--execute=CREATE DATABASE IF NOT EXISTS wordpress;'
 
       - name: Set version cache key and cache path
         id: set-cache-info
