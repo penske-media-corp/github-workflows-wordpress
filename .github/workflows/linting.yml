@@ -23,6 +23,15 @@ jobs:
     timeout-minutes: 20
     if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.4'
+            continue_on_error: false
+          - php: '8.0'
+            continue_on_error: true
+
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
