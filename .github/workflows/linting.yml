@@ -21,7 +21,7 @@ jobs:
     name: PHP linting
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     strategy:
       fail-fast: false
@@ -40,7 +40,7 @@ jobs:
           phpcs: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
-      - name: Run PHPCS
+      - name: Run PHP linting
         run: |
           # TODO: should any of this be lifted to the composite action?
           export PMC_SKIP_INIT_BUILD=true

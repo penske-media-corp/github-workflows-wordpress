@@ -6,7 +6,6 @@ on:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
 
-
 # Cancels all previous workflow runs for pull requests that have not completed.
 concurrency:
   # The concurrency group contains the workflow name and the branch name for pull requests
@@ -22,7 +21,7 @@ jobs:
     name: PHPUnit
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ github.event_name == 'pull_request' }} && ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     strategy:
       fail-fast: false
