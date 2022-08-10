@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: read
+  # To allow SonarCloud to post to PR.
+  pull-requests: write
 
 jobs:
   phpunit:
