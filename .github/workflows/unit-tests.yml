@@ -37,6 +37,9 @@ jobs:
             check_code_coverage: false
             continue_on_error: true
 
+    outputs:
+      check_code_coverage: ${{ matrix.check_code_coverage }}
+
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
@@ -133,15 +136,13 @@ jobs:
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts/*.xml
-        outputs:
-          check_code_coverage: ${{ matrix.check_code_coverage }}
 
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: phpunit
-    if: ${{ needs.code-coverage-reports.outputs.check_code_coverage == 'true' }}
+    if: ${{ needs.phpunit.outputs.check_code_coverage == 'true' }}
 
     steps:
       - name: Download artifacts
