@@ -133,6 +133,7 @@ jobs:
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts/*.xml
+          if-no-files-found: error
 
   sonarcloud:
     name: SonarCloud
@@ -146,3 +147,8 @@ jobs:
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts
+
+      - name: Debug
+        run: |
+          ls -lah ${{ github.workspace }}
+          ls -lah ${{ github.workspace }}/artifacts
