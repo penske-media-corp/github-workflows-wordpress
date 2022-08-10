@@ -26,6 +26,9 @@ jobs:
             continue_on_error: true
 
     steps:
+      - name: Debug
+        run: echo "${{ github.event_name }}"
+
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
