@@ -26,11 +26,7 @@ jobs:
 
       - name: Run PHPCS
         run: |
-          # TODO: should any of this be lifted to the composite action?
-          export PMC_SKIP_INIT_BUILD=true
-          export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
           . pmc-manifest
-
           . pmc-test-phpcs
 
       - name: Ensure version-controlled files are not modified during the tests

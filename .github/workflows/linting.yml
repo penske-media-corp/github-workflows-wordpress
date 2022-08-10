@@ -26,9 +26,6 @@ jobs:
             continue_on_error: true
 
     steps:
-      - name: Debug
-        run: echo "${{ github.event_name }}"
-
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
@@ -38,11 +35,7 @@ jobs:
 
       - name: Run PHP linting
         run: |
-          # TODO: should any of this be lifted to the composite action?
-          export PMC_SKIP_INIT_BUILD=true
-          export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
           . pmc-manifest
-
           . pmc-test-phplint
 
       - name: Ensure version-controlled files are not modified during the tests

@@ -114,16 +114,16 @@ jobs:
             rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
             ln -s "${WP_CONTENT_SOURCE_DIR}/themes" "${WP_CONTENT_TARGET_DIR}/themes"
           fi
+          
+          # TODO: set `WEB_ROOT` envar.
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
-          export PMC_SKIP_INIT_BUILD=true
-          export PMC_COMMIT_DIFF_FILE=/tmp/diff.txt
           . pmc-manifest
 
-          # TODO: artifacts.
           export PMC_ARTIFACTS=true
+          
           # TODO: second run like we do in Bitbucket?
           . pmc-test-phpunit
 
