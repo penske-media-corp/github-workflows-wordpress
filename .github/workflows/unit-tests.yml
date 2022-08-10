@@ -156,6 +156,13 @@ jobs:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts
 
+      - name: Fix paths in coverage reports
+        run: |
+          # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
+          for REPORT in ./artifacts/coverage-*.xml; do
+            sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
+          done
+
       - name: Set Sonar variables
         run: |
           if [[ -d ./artifacts ]]; then
