@@ -22,15 +22,19 @@ jobs:
         include:
           - php: '7.4'
             wordpress: 'latest'
+            check_code_coverage: true
             continue_on_error: false
           - php: '7.4'
             wordpress: 'nightly'
+            check_code_coverage: false
             continue_on_error: true
           - php: '8.0'
             wordpress: 'latest'
+            check_code_coverage: false
             continue_on_error: true
           - php: '8.0'
             wordpress: 'nightly'
+            check_code_coverage: false
             continue_on_error: true
 
     steps:
@@ -123,26 +127,25 @@ jobs:
         run: git diff --exit-code
 
       - name: Capture coverage reports
+        id: capture-coverage-reports
         uses: actions/upload-artifact@v3
+        if: ${{ matrix.check_code_coverage }}
         with:
-          name: phpunit-coverage-${{ matrix.php }}-${{ matrix.wordpress }}
-          path: ${{ github.workspace }}/artifacts
+          name: phpunit-coverage
+          path: ${{ github.workspace }}/artifacts/*.xml
+        outputs:
+          check_code_coverage: ${{ matrix.check_code_coverage }}
 
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: phpunit
-    # TODO: need an `if` to limit this to the "main" PHPUnit run.
+    if: ${{ needs.code-coverage-reports.outputs.check_code_coverage == 'true' }}
 
     steps:
-      # TODO: check out artifacts.
-      - name: Test
-        run: echo "Hello world"
-
-      # TODO: this will fail, but how do we get the name DRYly?
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
-          name: phpunit-coverage-${{ matrix.php }}-${{ matrix.wordpress }}
+          name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts
