@@ -37,9 +37,6 @@ jobs:
             check_code_coverage: false
             continue_on_error: true
 
-    outputs:
-      check_code_coverage: ${{ matrix.check_code_coverage }}
-
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
@@ -142,12 +139,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: phpunit
-#    if: ${{ needs.phpunit.outputs.check_code_coverage == 'true' }}
 
     steps:
-      - name: Debug
-        run: ${{ needs.phpunit.outputs.check_code_coverage }}
-
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
