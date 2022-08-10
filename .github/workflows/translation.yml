@@ -1,0 +1,40 @@
+name: Translation
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  l10n:
+    name: Localization
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        with:
+          git_checkout_fetch_depth: 1
+          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          translation: 1
+
+      - name: Set text domain
+        if: ${{ github.repository != 'penske-media-corp/pmc-plugins' }}
+        run: grep -Eoh 'PMC_TEXT_DOMAIN=([a-z\-]+)' "${GITHUB_WORKSPACE}/docker-compose.env" >> $GITHUB_ENV
+
+      - name: Run PHP linting
+        run: |
+          # TODO: REMOVE THIS!
+          echo $PMC_TEXT_DOMAIN
+          
+          . pmc-manifest
+          . pmc-test-phpl10n
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
