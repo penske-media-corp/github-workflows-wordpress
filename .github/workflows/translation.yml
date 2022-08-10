@@ -28,11 +28,8 @@ jobs:
         if: ${{ github.repository != 'penske-media-corp/pmc-plugins' }}
         run: grep -Eoh 'PMC_TEXT_DOMAIN=([a-z\-]+)' "${GITHUB_WORKSPACE}/docker-compose.env" >> $GITHUB_ENV
 
-      - name: Run PHP linting
+      - name: Validate localization support
         run: |
-          # TODO: REMOVE THIS!
-          echo $PMC_TEXT_DOMAIN
-          
           . pmc-manifest
           . pmc-test-phpl10n
 
