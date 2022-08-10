@@ -135,20 +135,41 @@ jobs:
           path: ${{ github.workspace }}/artifacts/*.xml
           if-no-files-found: error
 
-  sonarcloud:
-    name: SonarCloud
+  code-quality:
+    name: Code Quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: phpunit
 
     steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+        with:
+          # Shallow clones should be disabled for a better relevancy of analysis.
+          fetch-depth: 0
+
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts
 
-      - name: Debug
+      - name: Set Sonar variables
         run: |
-          ls -lah ${{ github.workspace }}
-          ls -lah ${{ github.workspace }}/artifacts
+          if [[ -d ./artifacts ]]; then
+            ls -l ./artifacts
+
+            echo "sonar.php.coverage.reportPaths=$(find ./artifacts -type f -name '*.xml' | tr '\n', ',' | sed 's/,$//g')" >> "./sonar-project.properties"
+
+            cat ./sonar-project.properties
+          else
+            ls -l .
+            exit 1
+          fi
+
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          # Token needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
