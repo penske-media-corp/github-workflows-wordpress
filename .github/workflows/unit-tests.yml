@@ -139,7 +139,8 @@ jobs:
             if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
               git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
             else
-              git clone --depth 1 git@github.com:penske-media-corp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+              # TODO: replace with GH URL once key is sorted.
+              git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
             fi
             
             # TODO: parent theme, if applicable.
