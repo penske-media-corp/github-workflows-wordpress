@@ -103,23 +103,48 @@ jobs:
           chmod +x "${SCRIPT_PATH}"
           yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1 ${{ matrix.wordpress }}
 
-      - name: Link Core Tech
+      - name: Set up WordPress
         run: |
-          exit 1
+          . pipeline-functions
+
+          WEB_ROOT="${WP_CORE_DIR}"
+          WP_CONTENT_TARGET_DIR="${WP_CORE_DIR}/wp-content"
+
+          # Install client-mu-plugins.
+          if [[ ! -d "${WP_CONTENT_TARGET_DIR}/client-mu-plugins" ]]; then
+            mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
+          fi
+          mv "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins/plugin-loader.php"
+
+          # Install VIP Go's mu-plugins.
+          git clone --depth 1 git@github.com:Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+
+          # Install pmc-vip-go-plugins.
+          rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
+          git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
+          git_switch_to_master_if_branch_not_exist "${GITHUB_REF_NAME}" "${WP_CONTENT_TARGET_DIR}/plugins"
+
+          # TODO: install dependencies, using helper to check out expected versions
+          # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
+          # Install pmc-plugins if not testing pmc-plugins.
+          if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
+            # TODO: provision pmc-plugins using git_switch_to_master_if_branch_not_exist 
+
+            git clone --depth 1 git@github.com:penske-media-corp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+            git_switch_to_master_if_branch_not_exist "${GITHUB_REF_NAME}" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+          else
+            # TODO: anything, if we're testing pmc-plugins?
+          fi
           
+          exit 0         
           
           WP_CONTENT_SOURCE_DIR="${GITHUB_WORKSPACE}/.cache/www/html/wp-content"
-          WP_CONTENT_TARGET_DIR="${WP_CORE_DIR}/wp-content"
           ln -s "${WP_CONTENT_SOURCE_DIR}/mu-plugins/vip-go-mu-plugins-built" "${WP_CONTENT_TARGET_DIR}/mu-plugins"
 
           rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-vip-go-plugins" "${WP_CONTENT_TARGET_DIR}/plugins"
           ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
 
-          if [[ ! -d "${WP_CONTENT_TARGET_DIR}/client-mu-plugins" ]]; then
-            mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
-          fi
-          mv "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins/plugin-loader.php"
 
           if [[ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]]; then
             rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
