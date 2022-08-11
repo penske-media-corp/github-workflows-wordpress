@@ -27,8 +27,9 @@ jobs:
       # TODO: cache for a day?
       - name: Install PHPCS and PMC standards
         run: |
-          git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-codesniffer.git ${RUNNER_TEMP}/phpcs
-          composer --working-dir ${RUNNER_TEMP}/phpcs install
+          git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-codesniffer.git "${RUNNER_TEMP}/phpcs"
+          ls -lah "${RUNNER_TEMP}/phpcs"
+          composer --working-dir="${RUNNER_TEMP}/phpcs" install
           echo "${RUNNER_TEMP}/phpcs/vendor/bin" >> $GITHUB_PATH
 
       - name: Log PHPCS debug information
