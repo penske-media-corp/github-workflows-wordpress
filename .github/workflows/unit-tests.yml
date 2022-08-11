@@ -64,7 +64,7 @@ jobs:
             echo "PMC_PHPUNIT_BOOTSTRAP=${RUNNER_TEMP}/wp/core/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
           fi
           
-          if [[ "branch" == "${GITHUB_REF_TYPE}" & "$(pmc_get_git_default_branch)" == ${GITHUB_REF_NAME} ]]; then
+          if [[ "branch" == "${GITHUB_REF_TYPE}" && "$(pmc_get_git_default_branch)" == ${GITHUB_REF_NAME} ]]; then
             echo "PMC_PHPUNIT_MATCH_BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
           else
             echo "PMC_PHPUNIT_MATCH_BRANCH=true" >> $GITHUB_ENV
