@@ -118,17 +118,29 @@ jobs:
           mv "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins/plugin-loader.php"
 
           # Install VIP Go's mu-plugins.
-          git clone --depth 1 git@github.com:Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+          if [[ -d "${WP_CONTENT_TARGET_DIR}/mu-plugins" ]]; then
+            git -C "${WP_CONTENT_TARGET_DIR}/mu-plugins" pull
+          else
+            git clone --depth 1 git@github.com:Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+          fi
 
           # Install pmc-vip-go-plugins.
-          rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
-          git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
+          if [[ -f "${WP_CONTENT_TARGET_DIR}/plugins/README.md" ]]; then
+            git -C "${WP_CONTENT_TARGET_DIR}/plugins" pull
+          else
+            rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
+            git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
+          fi
 
           # TODO: install dependencies, using helper to check out expected versions
           # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
           # Install pmc-plugins if not testing pmc-plugins.
           if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
-            git clone --depth 1 git@github.com:penske-media-corp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+            if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
+              git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
+            else
+              git clone --depth 1 git@github.com:penske-media-corp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+            fi
             
             # TODO: parent theme, if applicable.
           else
