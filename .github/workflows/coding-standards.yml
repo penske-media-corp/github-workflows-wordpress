@@ -24,6 +24,19 @@ jobs:
           phpcs: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
+      # TODO: cache for a day?
+      - name: Install PHPCS and PMC standards
+        run: |
+          git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-codesniffer.git ${RUNNER_TEMP}/phpcs
+          composer --working-dir ${RUNNER_TEMP}/phpcs install
+          echo "${RUNNER_TEMP}/phpcs/vendor/bin" >> $GITHUB_PATH
+
+      - name: Log PHPCS debug information
+        if: ${{ inputs.phpcs == '1' }}
+        run: |
+          phpcs -i
+          phpcs --config-show
+
       - name: Run PHPCS
         run: |
           . pmc-manifest
