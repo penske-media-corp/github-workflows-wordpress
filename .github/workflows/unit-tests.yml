@@ -121,7 +121,7 @@ jobs:
           if [[ -d "${WP_CONTENT_TARGET_DIR}/mu-plugins" ]]; then
             git -C "${WP_CONTENT_TARGET_DIR}/mu-plugins" pull
           else
-            git clone --depth 1 git@github.com:Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+            git clone --depth 1 https://github.com/Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
           fi
 
           # Install pmc-vip-go-plugins.
