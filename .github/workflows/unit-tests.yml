@@ -148,6 +148,10 @@ jobs:
             # TODO: anything, if we're testing pmc-plugins?
           fi
           
+          ls -lah ${WP_CONTENT_TARGET_DIR}
+          ls -lah ${WP_CONTENT_TARGET_DIR}/plugins
+          ls -lah ${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins
+          
           exit 0         
           
           WP_CONTENT_SOURCE_DIR="${GITHUB_WORKSPACE}/.cache/www/html/wp-content"
