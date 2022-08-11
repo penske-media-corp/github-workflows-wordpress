@@ -105,6 +105,7 @@ jobs:
 
       - name: Set up WordPress
         run: |
+          # TODO: confirm need.
           . pipeline-functions
 
           WEB_ROOT="${WP_CORE_DIR}"
@@ -122,16 +123,14 @@ jobs:
           # Install pmc-vip-go-plugins.
           rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
           git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
-          git_switch_to_master_if_branch_not_exist "${GITHUB_REF_NAME}" "${WP_CONTENT_TARGET_DIR}/plugins"
 
           # TODO: install dependencies, using helper to check out expected versions
           # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
           # Install pmc-plugins if not testing pmc-plugins.
           if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
-            # TODO: provision pmc-plugins using git_switch_to_master_if_branch_not_exist 
-
             git clone --depth 1 git@github.com:penske-media-corp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
-            git_switch_to_master_if_branch_not_exist "${GITHUB_REF_NAME}" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+            
+            # TODO: parent theme, if applicable.
           else
             # TODO: anything, if we're testing pmc-plugins?
           fi
