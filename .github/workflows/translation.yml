@@ -28,6 +28,8 @@ jobs:
         run: |
           ls -lah $(composer config home)
           ls -lah $(composer config home)/vendor/bin
+          echo $PATH
+          echo $GITHUB_PATH
 
       - name: Set text domain
         if: ${{ github.repository != 'penske-media-corp/pmc-plugins' }}
