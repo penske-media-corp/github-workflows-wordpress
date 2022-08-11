@@ -37,6 +37,10 @@ jobs:
           phpcs -i
           phpcs --config-show
 
+      - name: Set text domain
+        if: ${{ github.repository != 'penske-media-corp/pmc-plugins' }}
+        run: grep -Eoh 'PMC_TEXT_DOMAIN=([a-z\-]+)' "${GITHUB_WORKSPACE}/docker-compose.env" >> $GITHUB_ENV
+
       - name: Run PHPCS
         run: |
           . pmc-manifest
