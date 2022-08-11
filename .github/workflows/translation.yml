@@ -24,6 +24,11 @@ jobs:
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           translation: 1
 
+      - name: Debug
+        run: |
+          ls -lah $(composer config home)
+          ls -lah $(composer config home)/vendor/bin
+
       - name: Set text domain
         if: ${{ github.repository != 'penske-media-corp/pmc-plugins' }}
         run: grep -Eoh 'PMC_TEXT_DOMAIN=([a-z\-]+)' "${GITHUB_WORKSPACE}/docker-compose.env" >> $GITHUB_ENV
