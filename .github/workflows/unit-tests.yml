@@ -28,18 +28,18 @@ jobs:
             wordpress: 'latest'
             check_code_coverage: true
             continue_on_error: false
-          - php: '7.4'
-            wordpress: 'nightly'
-            check_code_coverage: false
-            continue_on_error: true
-          - php: '8.0'
-            wordpress: 'latest'
-            check_code_coverage: false
-            continue_on_error: true
-          - php: '8.0'
-            wordpress: 'nightly'
-            check_code_coverage: false
-            continue_on_error: true
+#          - php: '7.4'
+#            wordpress: 'nightly'
+#            check_code_coverage: false
+#            continue_on_error: true
+#          - php: '8.0'
+#            wordpress: 'latest'
+#            check_code_coverage: false
+#            continue_on_error: true
+#          - php: '8.0'
+#            wordpress: 'nightly'
+#            check_code_coverage: false
+#            continue_on_error: true
 
     steps:
       - name: Prepare environment
@@ -144,30 +144,14 @@ jobs:
             fi
             
             # TODO: parent theme, if applicable.
-          # else
+          else
             # TODO: anything, if we're testing pmc-plugins?
+            echo "${PMC_IS_PMC_PLUGINS}"
           fi
           
           ls -lah ${WP_CONTENT_TARGET_DIR}
           ls -lah ${WP_CONTENT_TARGET_DIR}/plugins
           ls -lah ${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins
-          
-          exit 0         
-          
-          WP_CONTENT_SOURCE_DIR="${GITHUB_WORKSPACE}/.cache/www/html/wp-content"
-          ln -s "${WP_CONTENT_SOURCE_DIR}/mu-plugins/vip-go-mu-plugins-built" "${WP_CONTENT_TARGET_DIR}/mu-plugins"
-
-          rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
-          ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-vip-go-plugins" "${WP_CONTENT_TARGET_DIR}/plugins"
-          ln -s "${WP_CONTENT_SOURCE_DIR}/plugins/pmc-plugins" "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
-
-
-          if [[ -d "${WP_CONTENT_SOURCE_DIR}/themes" ]]; then
-            rm -rf "${WP_CONTENT_TARGET_DIR}/themes"
-            ln -s "${WP_CONTENT_SOURCE_DIR}/themes" "${WP_CONTENT_TARGET_DIR}/themes"
-          fi
-          
-          # TODO: set `WEB_ROOT` envar.
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
