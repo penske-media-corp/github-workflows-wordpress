@@ -119,17 +119,17 @@ jobs:
 
           # Install VIP Go's mu-plugins.
           if [[ -d "${WP_CONTENT_TARGET_DIR}/mu-plugins" ]]; then
-            git --quiet -C "${WP_CONTENT_TARGET_DIR}/mu-plugins" pull
+            git -C "${WP_CONTENT_TARGET_DIR}/mu-plugins" pull
           else
-            git clone --quiet --depth 1 https://github.com/Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+            git clone --depth 1 https://github.com/Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
           fi
 
           # Install pmc-vip-go-plugins.
           if [[ -f "${WP_CONTENT_TARGET_DIR}/plugins/README.md" ]]; then
-            git --quiet -C "${WP_CONTENT_TARGET_DIR}/plugins" pull
+            git -C "${WP_CONTENT_TARGET_DIR}/plugins" pull
           else
             rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
-            git clone --quiet --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
+            git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
           fi
 
           # TODO: install dependencies, using helper to check out expected versions
@@ -137,10 +137,10 @@ jobs:
           # Install pmc-plugins if not testing pmc-plugins.
           if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
             if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
-              git --quiet -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
+              git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
             else
               # TODO: replace with GH URL once key is sorted.
-              git clone --quiet --depth 1 git@bitbucket.org:penskemediacorp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
+              git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
             fi
             
             # TODO: parent theme, if applicable.
