@@ -180,6 +180,7 @@ jobs:
         with:
           # Shallow clones should be disabled for a better relevancy of analysis.
           fetch-depth: 0
+#          ref: ${{ 'pull_request' === github.event.pull_request.head.sha }}
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
