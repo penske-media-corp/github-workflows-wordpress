@@ -132,29 +132,12 @@ jobs:
             git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
           fi
 
-          # TODO: install dependencies, using helper to check out expected versions
-          # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
-          # Install pmc-plugins if not testing pmc-plugins.
+          # Install pmc-plugins and parent theme.
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
             WP_THEME_FOLDER="${WP_CONTENT_TARGET_DIR}/themes"
-          
-            if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
-              git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
-            else
-              # TODO: replace with GH URL once key is sorted.
-              git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
-            fi
-
-            # TODO: parent theme, if applicable.
-            PARENT_THEME_SLUG="$(get_parent_wp_theme . true)"
-            if [[ -n "${PARENT_THEME_SLUG}" ]]; then
-              REPO_SLUG="${PARENT_THEME_SLUG#vip\/}"
-              git clone --depth 1 "git@bitbucket.org:penskemediacorp/${REPO_SLUG}.git" "${WP_THEME_FOLDER}/${PARENT_THEME_SLUG}"
-            fi
+            checkout_dependencies .
 
             maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
-          
-            exit 123
           fi
 
       - name: Run PHPUnit
