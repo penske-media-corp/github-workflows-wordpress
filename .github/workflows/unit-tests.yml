@@ -103,9 +103,9 @@ jobs:
           chmod +x "${SCRIPT_PATH}"
           yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1 ${{ matrix.wordpress }}
 
-      - name: Set up WordPress
+        # This step is intentianally not skipped if cache is present, but result is cached, thereby speeding up the step.
+      - name: Install WordPress dependencies
         run: |
-          # TODO: confirm need.
           . pipeline-functions
 
           WEB_ROOT="${WP_CORE_DIR}"
@@ -118,27 +118,35 @@ jobs:
           mv "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins/plugin-loader.php"
 
           # Install VIP Go's mu-plugins.
-          if [[ -d "${WP_CONTENT_TARGET_DIR}/mu-plugins" ]]; then
-            git -C "${WP_CONTENT_TARGET_DIR}/mu-plugins" pull
-          else
-            git clone --depth 1 https://github.com/Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
-          fi
+          git_checkout "${WP_CONTENT_TARGET_DIR}/mu-plugins" https://github.com/Automattic/vip-go-mu-plugins-built.git 1
+#          if [[ -d "${WP_CONTENT_TARGET_DIR}/mu-plugins" ]]; then
+#            git -C "${WP_CONTENT_TARGET_DIR}/mu-plugins" pull
+#          else
+#            git clone --depth 1 https://github.com/Automattic/vip-go-mu-plugins-built.git "${WP_CONTENT_TARGET_DIR}/mu-plugins"
+#          fi
+
 
           # Install pmc-vip-go-plugins.
           if [[ -f "${WP_CONTENT_TARGET_DIR}/plugins/README.md" ]]; then
-            git -C "${WP_CONTENT_TARGET_DIR}/plugins" pull
-          else
             rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
-            git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
           fi
+
+          git_checkout "${WP_CONTENT_TARGET_DIR}/plugins" git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git 1
+#          if [[ -f "${WP_CONTENT_TARGET_DIR}/plugins/README.md" ]]; then
+#            git -C "${WP_CONTENT_TARGET_DIR}/plugins" pull
+#          else
+#            rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
+#            git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins"
+#          fi
 
           # Install pmc-plugins and parent theme.
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
             WP_THEME_FOLDER="${WP_CONTENT_TARGET_DIR}/themes"
             checkout_dependencies .
 
-            maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
           fi
+
+          maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
