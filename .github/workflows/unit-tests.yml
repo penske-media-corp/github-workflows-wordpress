@@ -58,10 +58,10 @@ jobs:
           echo "WP_CORE_DIR=${RUNNER_TEMP}/wp/core" >> $GITHUB_ENV
           echo "WP_TESTS_DIR=${RUNNER_TEMP}/wp/tests-lib" >> $GITHUB_ENV
 
-          if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
-            echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
-          else
+          if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
             echo "PMC_PHPUNIT_BOOTSTRAP=${RUNNER_TEMP}/wp/core/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
+          else
+            echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
           fi
           
           if [[ "branch" == "${GITHUB_REF_TYPE}" && "$(pmc_get_git_default_branch)" == ${GITHUB_REF_NAME} ]]; then
@@ -135,7 +135,10 @@ jobs:
           # TODO: install dependencies, using helper to check out expected versions
           # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
           # Install pmc-plugins if not testing pmc-plugins.
-          if [[ -n "${PMC_IS_PMC_PLUGINS}" ]]; then
+          if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
+            # TODO: anything, if we're testing pmc-plugins?
+            echo "Huh? '${PMC_IS_PMC_PLUGINS}'"
+          else
             if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
               git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
             else
@@ -144,11 +147,8 @@ jobs:
             fi
             
             # TODO: parent theme, if applicable.
-          else
-            # TODO: anything, if we're testing pmc-plugins?
-            echo "Huh? '${PMC_IS_PMC_PLUGINS}'"
           fi
-          
+
           ls -lah ${WP_CONTENT_TARGET_DIR}
           ls -lah ${WP_CONTENT_TARGET_DIR}/plugins
           ls -lah ${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins
