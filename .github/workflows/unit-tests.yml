@@ -103,8 +103,8 @@ jobs:
           chmod +x "${SCRIPT_PATH}"
           yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1 ${{ matrix.wordpress }}
 
-      # This step is intentionally not skipped if cache is present, but result is cached, thereby speeding up the step.
       - name: Install WordPress dependencies
+        # This step is intentionally not skipped if cache is present, but result is cached, thereby speeding up the step.
         run: |
           . pipeline-functions
 
