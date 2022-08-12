@@ -146,7 +146,7 @@ jobs:
             fi
 
             # TODO: parent theme, if applicable.
-            PARENT_THEME_SLUG="$(get_parent_wp_theme .)"
+            PARENT_THEME_SLUG="$(get_parent_wp_theme . true)"
             ls -lah .
             cat style.css
             echo "PARENT THEME: ${PARENT_THEME_SLUG}"
