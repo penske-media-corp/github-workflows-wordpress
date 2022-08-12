@@ -149,7 +149,6 @@ jobs:
             PARENT_THEME_SLUG="$(get_parent_wp_theme . true)"
             if [[ -n "${PARENT_THEME_SLUG}" ]]; then
               REPO_SLUG="${PARENT_THEME_SLUG#vip\/}"
-              echo $REPO_SLUG 
               git clone --depth 1 "git@bitbucket.org:penskemediacorp/${REPO_SLUG}.git" "${WP_THEME_FOLDER}/${PARENT_THEME_SLUG}"
             fi
 
