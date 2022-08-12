@@ -40,3 +40,31 @@ jobs:
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
+
+  js:
+    name: JS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        with:
+          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+
+      - name: Run eslint
+        run: |
+          . pmc-manifest
+          . "$NVM_DIR/nvm.sh"
+          
+          nvm install
+          nvm use
+          
+          npm i -g eslint
+          npm i -g lint-diff
+          
+          . pmc-test-eslint
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
