@@ -157,11 +157,26 @@ jobs:
           path: ${{ github.workspace }}/artifacts/*.xml
           if-no-files-found: error
 
+  jest:
+    name: JS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        with:
+          git_checkout_fetch_depth: 0
+          php_version: ${{ matrix.php }}
+          phpunit: 1
+          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: phpunit
+    needs: [ phpunit, jest ]
 
     steps:
       - name: Clone repository
