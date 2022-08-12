@@ -28,18 +28,18 @@ jobs:
             wordpress: 'latest'
             check_code_coverage: true
             continue_on_error: false
-#          - php: '7.4'
-#            wordpress: 'nightly'
-#            check_code_coverage: false
-#            continue_on_error: true
-#          - php: '8.0'
-#            wordpress: 'latest'
-#            check_code_coverage: false
-#            continue_on_error: true
-#          - php: '8.0'
-#            wordpress: 'nightly'
-#            check_code_coverage: false
-#            continue_on_error: true
+          - php: '7.4'
+            wordpress: 'nightly'
+            check_code_coverage: false
+            continue_on_error: true
+          - php: '8.0'
+            wordpress: 'latest'
+            check_code_coverage: false
+            continue_on_error: true
+          - php: '8.0'
+            wordpress: 'nightly'
+            check_code_coverage: false
+            continue_on_error: true
 
     steps:
       - name: Prepare environment
@@ -200,6 +200,6 @@ jobs:
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          # Token needed to get PR information, if any
+          # Token needed to get PR information, if any.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
