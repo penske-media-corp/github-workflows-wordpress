@@ -53,9 +53,8 @@ jobs:
         with:
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
-      - name: Run eslint
+      - name: Install eslint
         run: |
-          . pmc-manifest
           . "$NVM_DIR/nvm.sh"
           
           nvm install
@@ -63,6 +62,14 @@ jobs:
           
           npm i -g eslint
           npm i -g lint-diff
+
+      - name: Run eslint
+        run: |
+          . pmc-manifest
+          . "$NVM_DIR/nvm.sh"
+          
+          nvm install
+          nvm use
           
           . pmc-test-eslint
 
