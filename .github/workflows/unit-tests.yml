@@ -136,9 +136,6 @@ jobs:
           # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
           # Install pmc-plugins if not testing pmc-plugins.
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
-            # TODO: anything, if we're testing pmc-plugins?
-            echo "Huh? '${PMC_IS_PMC_PLUGINS}'"
-          else
             if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
               git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
             else
