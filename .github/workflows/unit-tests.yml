@@ -142,13 +142,9 @@ jobs:
               # TODO: replace with GH URL once key is sorted.
               git clone --depth 1 git@bitbucket.org:penskemediacorp/pmc-plugins.git "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins"
             fi
-            
+
             # TODO: parent theme, if applicable.
           fi
-
-          ls -lah ${WP_CONTENT_TARGET_DIR}
-          ls -lah ${WP_CONTENT_TARGET_DIR}/plugins
-          ls -lah ${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
