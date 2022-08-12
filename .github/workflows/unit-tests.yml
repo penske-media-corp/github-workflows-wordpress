@@ -170,9 +170,7 @@ jobs:
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Run npm test
-        run: |
-          . "$NVM_DIR/nvm.sh"
-          pmc-test-npm
+        run: pmc-test-npm
 
   code-quality:
     name: Code Quality
