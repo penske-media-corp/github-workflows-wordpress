@@ -136,6 +136,8 @@ jobs:
           # TODO: use maybe_switch_branch_for_testing_theme and checkout_dependencies
           # Install pmc-plugins if not testing pmc-plugins.
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
+            WP_THEME_FOLDER="${WP_CONTENT_TARGET_DIR}/themes"
+          
             if [[ -d "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" ]]; then
               git -C "${WP_CONTENT_TARGET_DIR}/plugins/pmc-plugins" pull
             else
@@ -144,6 +146,8 @@ jobs:
             fi
 
             # TODO: parent theme, if applicable.
+          
+            maybe_switch_branch_for_testing_theme "." "${BITBUCKET_BRANCH}"
           fi
 
       - name: Run PHPUnit
