@@ -147,6 +147,8 @@ jobs:
 
             # TODO: parent theme, if applicable.
             PARENT_THEME_SLUG="$(get_parent_wp_theme .)"
+            ls -lah .
+            cat style.css
             echo "PARENT THEME: ${PARENT_THEME_SLUG}"
           
             maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
