@@ -167,11 +167,11 @@ jobs:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
-          nodejs: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Run npm test
         run: pmc-test-npm
+        shell: bash -l {0}
 
   code-quality:
     name: Code Quality
