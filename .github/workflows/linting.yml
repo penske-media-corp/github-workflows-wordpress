@@ -67,10 +67,9 @@ jobs:
         run: |
           . pmc-manifest
           . "$NVM_DIR/nvm.sh"
-          
-          nvm install
+
           nvm use
-          
+
           . pmc-test-eslint
 
       - name: Ensure version-controlled files are not modified during the tests
