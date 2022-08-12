@@ -65,8 +65,8 @@ jobs:
 
       - name: Run eslint
         run: |
-          . pmc-manifest
           . "$NVM_DIR/nvm.sh"
+          . pmc-manifest
 
           nvm use
 
