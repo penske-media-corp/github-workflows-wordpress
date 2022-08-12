@@ -146,7 +146,7 @@ jobs:
             # TODO: parent theme, if applicable.
           else
             # TODO: anything, if we're testing pmc-plugins?
-            echo "${PMC_IS_PMC_PLUGINS}"
+            echo "Huh? '${PMC_IS_PMC_PLUGINS}'"
           fi
           
           ls -lah ${WP_CONTENT_TARGET_DIR}
