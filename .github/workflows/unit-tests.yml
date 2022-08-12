@@ -147,11 +147,15 @@ jobs:
 
             # TODO: parent theme, if applicable.
             PARENT_THEME_SLUG="$(get_parent_wp_theme . true)"
-            ls -lah .
-            cat style.css
-            echo "PARENT THEME: ${PARENT_THEME_SLUG}"
-          
+            if [[ -n "${PARENT_THEME_SLUG}" ]]; then
+              REPO_SLUG="${PARENT_THEME_SLUG#vip\/}"
+              echo $REPO_SLUG 
+              git clone --depth 1 "git@bitbucket.org:penskemediacorp/${REPO_SLUG}.git" "${WP_THEME_FOLDER}/${PARENT_THEME_SLUG}"
+            fi
+
             maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
+          
+            exit 123
           fi
 
       - name: Run PHPUnit
