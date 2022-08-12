@@ -171,7 +171,7 @@ jobs:
 
       - name: Run npm test
         run: |
-          ls -lah $NVM_DIR
+          . "$NVM_DIR/nvm.sh"
           pmc-test-npm
 
   code-quality:
