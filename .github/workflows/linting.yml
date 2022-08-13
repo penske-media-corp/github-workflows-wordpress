@@ -56,6 +56,7 @@ jobs:
       - name: Install eslint
         run: |
           . "$NVM_DIR/nvm.sh"
+          . pmc-manifest
           
           nvm install
           nvm use
