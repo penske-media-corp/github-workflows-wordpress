@@ -51,6 +51,7 @@ jobs:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
+          git_checkout_fetch_depth: 0
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Install eslint
