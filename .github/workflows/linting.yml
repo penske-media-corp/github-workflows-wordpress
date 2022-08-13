@@ -53,6 +53,17 @@ jobs:
         with:
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
+      - name: Set nvm-versions cache path
+        id: set-cache-info
+        run: echo "::set-output name=path::${NVM_DIR}/versions"
+
+      - name: Cache nvm
+        id: cache-wordpress-install
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.set-cache-info.outputs.path }}
+          key: ${{ runner.os }}-nvm-versions
+
       - name: Install eslint
         run: |
           . "$NVM_DIR/nvm.sh"
