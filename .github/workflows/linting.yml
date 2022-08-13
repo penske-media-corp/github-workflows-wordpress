@@ -70,7 +70,6 @@ jobs:
 
           nvm use
 
-          git checkout "${BITBUCKET_BRANCH}"
           . pmc-test-eslint
 
       - name: Ensure version-controlled files are not modified during the tests
