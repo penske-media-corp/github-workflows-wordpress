@@ -64,7 +64,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ steps.set-cache-info.outputs.path }}
-          key: ${{ runner.os }}-nvm-versions-${{ steps.get-date.outputs.date }}
+          key: ${{ runner.os }}-nvm-versions-${{ steps.set-cache-info.outputs.date }}
 
       - name: Install eslint
         run: |
