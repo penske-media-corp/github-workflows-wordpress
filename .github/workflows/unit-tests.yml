@@ -167,20 +167,8 @@ jobs:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
+          nodejs: 1
           ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
-
-      - name: Set nvm-versions cache path
-        id: set-cache-info
-        run: |
-          echo "::set-output name=path::${NVM_DIR}/versions"
-          echo "::set-output name=date::$(/bin/date -u --date='last Sun' "+%F")"
-
-      - name: Cache nvm versions
-        id: cache-wordpress-install
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.set-cache-info.outputs.path }}
-          key: ${{ runner.os }}-nvm-versions-${{ steps.set-cache-info.outputs.date }}
 
       - name: Run npm test
         run: |
