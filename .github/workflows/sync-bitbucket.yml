@@ -1,4 +1,4 @@
-name: Sync to Bitbucket
+name: Sync with Bitbucket
 
 on:
   workflow_call:
@@ -21,8 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  sync:
-    name: sync
+  push:
+    name: Push to Bitbucket
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: ${{ github.event_name == 'push' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
@@ -58,3 +58,39 @@ jobs:
         run: |
           git remote add bitbucket ${{ inputs.repo_url }}
           git push -f bitbucket ${{ steps.set-outputs.outputs.source_branch }}:${{ steps.set-outputs.outputs.destination_branch }}
+
+  delete:
+    name: Delete from Bitbucket
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.event_name == 'delete' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Add SSH key
+        run: |
+          mkdir -p "${HOME}/.ssh"
+          
+          if [[ ! -f "${HOME}/.ssh/known_hosts" ]]; then
+            touch "${HOME}/.ssh/known_hosts"
+          fi
+          ssh-keyscan bitbucket.org >> "${HOME}/.ssh/known_hosts"
+
+          eval `ssh-agent`
+          ssh-add - <<<"$(echo "${{ secrets.SSH_KEY }}")"
+
+      - name: Check out repository
+        uses: actions/cehckout@v3
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          if [[ -z "${INPUT_DESTINATION_BRANCH" ]]; then
+            echo "::set-output name=destination_branch::${{ github.ref_name }}"
+          else
+            echo "::set-output name=destination_branch::${INPUT_DESTINATION_BRANCH}"
+          fi
+
+      - name: Delete from Bitbucket
+        run: |
+          git remote add bitbucket ${{ inputs.repo_url }}
+          git push -d bitbucket ${{ steps.set-outputs.outputs.destination_branch }}
