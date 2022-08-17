@@ -52,98 +52,19 @@ jobs:
           github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
           php_version: ${{ matrix.php }}
           phpunit: 1
-
-      - name: Set environment variables
-        run: |
-          . pmc-functions
-          
-          echo "TMPDIR=${RUNNER_TEMP}" >> $GITHUB_ENV
-          echo "WP_CORE_DIR=${RUNNER_TEMP}/wp/core" >> $GITHUB_ENV
-          echo "WP_TESTS_DIR=${RUNNER_TEMP}/wp/tests-lib" >> $GITHUB_ENV
-
-          if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
-            echo "PMC_PHPUNIT_BOOTSTRAP=${RUNNER_TEMP}/wp/core/wp-content/plugins/pmc-plugins/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
-          else
-            echo "PMC_PHPUNIT_BOOTSTRAP=${GITHUB_WORKSPACE}/pmc-unit-test/bootstrap.php" >> $GITHUB_ENV
-          fi
-          
-          if [[ "branch" == "${GITHUB_REF_TYPE}" && "$(pmc_get_git_default_branch)" == ${GITHUB_REF_NAME} ]]; then
-            echo "PMC_PHPUNIT_MATCH_BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          else
-            echo "PMC_PHPUNIT_MATCH_BRANCH=true" >> $GITHUB_ENV
-          fi
-        shell: bash
-
-      - name: Start MySQL
-        run: |
-          sudo systemctl start mysql.service
-          mysql --user=root --password=root --host=127.0.0.1 --protocol=tcp '--execute=CREATE DATABASE IF NOT EXISTS wordpress;'
-
-      - name: Set version cache key and cache path
-        id: set-cache-info
-        run: |
-          echo "::set-output name=path::${TMPDIR}/wp"
-          
-          if [[ "${{ matrix.wordpress }}" == 'latest' ]]; then
-            echo "::set-output name=version::$(curl https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')"
-          else
-            echo "::set-output name=version::$(/bin/date -u "+%F")"
-          fi
-        shell: bash
-
-      - name: Cache WordPress install
-        id: cache-wordpress-install
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.set-cache-info.outputs.path }}
-          key: ${{ runner.os }}-version-${{ steps.set-cache-info.outputs.version }}-php-${{ matrix.php }}-wp-${{ matrix.wordpress }}-wordpress-install
-
-      - name: Install WordPress
-        if: ${{ steps.cache-wordpress-install.outputs.cache-hit != 'true' }}
-        run: |
-          SCRIPT_PATH="/usr/local/bin/install-wp-tests"
-          curl -o "${SCRIPT_PATH}" https://raw.githubusercontent.com/wp-cli/scaffold-command/master/templates/install-wp-tests.sh
-          chmod +x "${SCRIPT_PATH}"
-          yes | "${SCRIPT_PATH}" wordpress root root 127.0.0.1 ${{ matrix.wordpress }}
-
-      - name: Install WordPress dependencies
-        run: |
-          . pipeline-functions
-
-          WEB_ROOT="${WP_CORE_DIR}"
-          WP_CONTENT_TARGET_DIR="${WP_CORE_DIR}/wp-content"
-
-          # Install client-mu-plugins.
-          if [[ ! -d "${WP_CONTENT_TARGET_DIR}/client-mu-plugins" ]]; then
-            mkdir "${WP_CONTENT_TARGET_DIR}/client-mu-plugins"
-          fi
-          mv "${RUNNER_TEMP}/plugin-loader.php" "${WP_CONTENT_TARGET_DIR}/client-mu-plugins/plugin-loader.php"
-
-          # Install VIP Go's mu-plugins.
-          git_checkout "${WP_CONTENT_TARGET_DIR}/mu-plugins" https://github.com/Automattic/vip-go-mu-plugins-built.git 1
-
-          # Install pmc-vip-go-plugins.
-          if [[ -f "${WP_CONTENT_TARGET_DIR}/plugins/README.md" ]]; then
-            rm -rf "${WP_CONTENT_TARGET_DIR}/plugins"
-          fi
-
-          git_checkout "${WP_CONTENT_TARGET_DIR}/plugins" git@bitbucket.org:penskemediacorp/pmc-vip-go-plugins.git 1
-
-          # Install pmc-plugins and parent theme.
-          if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
-            WP_THEME_FOLDER="${WP_CONTENT_TARGET_DIR}/themes"
-            checkout_dependencies .
-          fi
-
-          maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
+          wordpress_version: ${{ matrix.wordpress }}
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
+          if [[ -n $PMC_IS_PMC_PLUGINS ]]; then
+            cd "${PMC_PLUGINS_DIR}"
+          fi
+
           . pmc-manifest
           
-          echo "${{ github.workspace }}"
-          ls -lah "${{ github.workspace }}"
+          echo $(pwd)
+          ls -lah $(pwd)
 
           # Capture coverage reports for processing with Sonar.
           export PMC_ARTIFACTS=true
@@ -205,6 +126,7 @@ jobs:
       - name: Fix paths in coverage reports
         run: |
           # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
+          # TODO: fix this for `pmc-plugins` directory change.
           for REPORT in ./artifacts/coverage-*.xml; do
             sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
           done
