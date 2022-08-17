@@ -108,6 +108,7 @@ jobs:
 
       - name: Install WordPress dependencies
         run: |
+          . pmc-setup-pmc-plugins
           . pipeline-functions
 
           WEB_ROOT="${WP_CORE_DIR}"
