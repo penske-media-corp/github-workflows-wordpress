@@ -131,9 +131,10 @@ jobs:
 
           # Install pmc-plugins and parent theme.
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
+            echo "Huh? '${PMC_IS_PMC_PLUGINS}'"
+          
             WP_THEME_FOLDER="${WP_CONTENT_TARGET_DIR}/themes"
             checkout_dependencies .
-
           fi
 
           maybe_switch_branch_for_testing_theme . "${BITBUCKET_BRANCH}"
