@@ -5,6 +5,8 @@ on:
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
 
 permissions:
   contents: read

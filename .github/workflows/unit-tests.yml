@@ -5,6 +5,8 @@ on:
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
       SONAR_TOKEN:
         required: true
 
@@ -45,10 +47,11 @@ jobs:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
           php_version: ${{ matrix.php }}
           phpunit: 1
-          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Set environment variables
         run: |
@@ -168,7 +171,7 @@ jobs:
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
           nodejs: 1
-          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       - name: Run npm test
         run: |

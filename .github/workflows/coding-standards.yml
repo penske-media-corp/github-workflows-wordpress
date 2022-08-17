@@ -5,6 +5,8 @@ on:
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
 
 permissions:
   contents: read
@@ -20,9 +22,10 @@ jobs:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@add/action
         with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
           phpcs: 1
-          ssh_key_encoded: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
 
       # TODO: cache for a day?
       - name: Install PHPCS and PMC standards
