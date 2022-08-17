@@ -108,7 +108,6 @@ jobs:
 
       - name: Install WordPress dependencies
         run: |
-          . pmc-setup-pmc-plugins
           . pipeline-functions
 
           WEB_ROOT="${WP_CORE_DIR}"
@@ -132,8 +131,6 @@ jobs:
 
           # Install pmc-plugins and parent theme.
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
-            echo "Huh? '${PMC_IS_PMC_PLUGINS}'"
-          
             WP_THEME_FOLDER="${WP_CONTENT_TARGET_DIR}/themes"
             checkout_dependencies .
           fi
