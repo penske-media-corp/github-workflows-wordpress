@@ -59,10 +59,7 @@ jobs:
         run: |
           # Capture coverage reports for processing with Sonar.
           export PMC_ARTIFACTS=true
-          
-          echo $(pwd)
-          ls -lah $(pwd)
-          
+
           . pmc-manifest
 
           # TODO: second run like we do in Bitbucket?
