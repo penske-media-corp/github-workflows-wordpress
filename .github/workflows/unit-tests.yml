@@ -57,18 +57,11 @@ jobs:
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
-          if [[ -n $PMC_IS_PMC_PLUGINS ]]; then
-            cd "${PMC_PLUGINS_DIR}"
-          fi
-
-          . pmc-manifest
-          
-          echo $(pwd)
-          ls -lah $(pwd)
-
           # Capture coverage reports for processing with Sonar.
           export PMC_ARTIFACTS=true
           
+          . pmc-manifest
+
           # TODO: second run like we do in Bitbucket?
           . pmc-test-phpunit
 
