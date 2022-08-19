@@ -43,7 +43,7 @@ jobs:
           echo "SSH_AGENT_PID=${SSH_AGENT_PID}" >> $GITHUB_ENV
 
       - name: Check out repository
-        uses: actions/cehckout@v3
+        uses: actions/checkout@v3
 
       - name: Set outputs
         id: set-outputs
@@ -83,7 +83,7 @@ jobs:
           echo "SSH_AGENT_PID=${SSH_AGENT_PID}" >> $GITHUB_ENV
 
       - name: Check out repository
-        uses: actions/cehckout@v3
+        uses: actions/checkout@v3
 
       - name: Set outputs
         id: set-outputs
