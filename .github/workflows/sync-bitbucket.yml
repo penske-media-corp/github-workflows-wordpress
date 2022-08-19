@@ -9,8 +9,8 @@ on:
         required: true
         type: string
       destination_branch:
-        default: 'Destination branch, if other than branch that triggered the workflow.'
-        description: ''
+        default: ''
+        description: 'Destination branch, if other than branch that triggered the workflow.'
         required: false
         type: string
     secrets:
