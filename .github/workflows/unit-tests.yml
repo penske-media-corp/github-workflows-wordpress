@@ -75,7 +75,7 @@ jobs:
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts/*.xml
-          if-no-files-found: error
+          if-no-files-found: warn
 
   jest:
     name: JS
