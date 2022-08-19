@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
@@ -83,7 +83,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@add/action
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
