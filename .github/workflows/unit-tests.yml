@@ -61,8 +61,6 @@ jobs:
           export PMC_ARTIFACTS=true
 
           . pmc-manifest
-
-          # TODO: second run like we do in Bitbucket?
           . pmc-test-phpunit
 
       - name: Ensure version-controlled files are not modified during the tests
@@ -120,7 +118,6 @@ jobs:
       - name: Fix paths in coverage reports
         run: |
           # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
-          # TODO: fix this for `pmc-plugins` directory change.
           for REPORT in ./artifacts/coverage-*.xml; do
             sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
           done
