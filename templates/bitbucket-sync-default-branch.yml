@@ -1,0 +1,16 @@
+name: Sync
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  bitbucket:
+    name: Bitbucket
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/bitbucket-sync.yml@main
+    inputs:
+      repo_url: git@bitbucket.org:REPO_ORG/REPO_SLUG.git
+      destination_branch: master
+    secrets:
+      SSH_KEY: ${{ secrets.BITBUCKET_SYNC_SSH_KEY }}
