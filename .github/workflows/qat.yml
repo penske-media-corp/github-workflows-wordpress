@@ -1,0 +1,25 @@
+name: QAT
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  playwright:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: false
+
+    steps:
+      - name: Run Playwright tests
+        run: |
+          echo "Not implemented"
+          exit 0

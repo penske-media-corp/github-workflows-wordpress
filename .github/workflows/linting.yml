@@ -1,0 +1,81 @@
+name: Linting
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.4'
+            continue_on_error: false
+          - php: '8.0'
+            continue_on_error: true
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          git_checkout_fetch_depth: 0
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          phpcs: 1
+
+      - name: Run PHP linting
+        run: |
+          . pmc-manifest
+          . pmc-test-phplint
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
+  js:
+    name: JS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          nodejs: 1
+
+      - name: Install eslint
+        run: |
+          . "$NVM_DIR/nvm.sh"
+          
+          nvm install
+          nvm use
+          
+          npm i -g eslint
+          npm i -g lint-diff
+
+      - name: Run eslint
+        run: |
+          . "$NVM_DIR/nvm.sh"
+          . pmc-manifest
+
+          nvm use
+
+          . pmc-test-eslint
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

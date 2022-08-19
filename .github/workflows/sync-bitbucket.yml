@@ -1,0 +1,100 @@
+name: Sync with Bitbucket
+
+on:
+  workflow_call:
+    inputs:
+      repo_url:
+        default: ''
+        description: 'Destination repository URL.'
+        required: true
+        type: string
+      destination_branch:
+        default: 'Destination branch, if other than branch that triggered the workflow.'
+        description: ''
+        required: false
+        type: string
+    secrets:
+      SSH_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    name: Push to Bitbucket
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.event_name == 'push' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Add SSH key
+        run: |
+          mkdir -p "${HOME}/.ssh"
+  
+          if [[ ! -f "${HOME}/.ssh/known_hosts" ]]; then
+            touch "${HOME}/.ssh/known_hosts"
+          fi
+          ssh-keyscan bitbucket.org >> "${HOME}/.ssh/known_hosts"
+
+          eval `ssh-agent`
+          ssh-add - <<<"$(echo "${{ secrets.SSH_KEY }}")"
+          echo "SSH_AUTH_SOCK=${SSH_AUTH_SOCK}" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=${SSH_AGENT_PID}" >> $GITHUB_ENV
+
+      - name: Check out repository
+        uses: actions/cehckout@v3
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          echo "::set-output name=source_branch::${{ github.ref_name }}"
+
+          if [[ -z "${INPUT_DESTINATION_BRANCH" ]]; then
+            echo "::set-output name=destination_branch::${{ github.ref_name }}"
+          else
+            echo "::set-output name=destination_branch::${INPUT_DESTINATION_BRANCH}"
+          fi
+
+      - name: Push to Bitbucket
+        run: |
+          git remote add bitbucket ${{ inputs.repo_url }}
+          git push -f bitbucket ${{ steps.set-outputs.outputs.source_branch }}:${{ steps.set-outputs.outputs.destination_branch }}
+
+  delete:
+    name: Delete from Bitbucket
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.event_name == 'delete' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Add SSH key
+        run: |
+          mkdir -p "${HOME}/.ssh"
+          
+          if [[ ! -f "${HOME}/.ssh/known_hosts" ]]; then
+            touch "${HOME}/.ssh/known_hosts"
+          fi
+          ssh-keyscan bitbucket.org >> "${HOME}/.ssh/known_hosts"
+
+          eval `ssh-agent`
+          ssh-add - <<<"$(echo "${{ secrets.SSH_KEY }}")"
+          echo "SSH_AUTH_SOCK=${SSH_AUTH_SOCK}" >> $GITHUB_ENV
+          echo "SSH_AGENT_PID=${SSH_AGENT_PID}" >> $GITHUB_ENV
+
+      - name: Check out repository
+        uses: actions/cehckout@v3
+
+      - name: Set outputs
+        id: set-outputs
+        run: |
+          if [[ -z "${INPUT_DESTINATION_BRANCH" ]]; then
+            echo "::set-output name=destination_branch::${{ github.ref_name }}"
+          else
+            echo "::set-output name=destination_branch::${INPUT_DESTINATION_BRANCH}"
+          fi
+
+      - name: Delete from Bitbucket
+        run: |
+          git remote add bitbucket ${{ inputs.repo_url }}
+          git push -d bitbucket ${{ steps.set-outputs.outputs.destination_branch }}

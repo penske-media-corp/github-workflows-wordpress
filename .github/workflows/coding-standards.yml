@@ -1,0 +1,40 @@
+name: Coding Standards
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  phpcs:
+    name: PHP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          git_checkout_fetch_depth: 0
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          phpcs: 1
+
+      - name: Set text domain
+        if: ${{ github.repository != 'penske-media-corp/pmc-plugins' }}
+        run: grep -Eoh 'PMC_TEXT_DOMAIN=([a-z\-]+)' "${GITHUB_WORKSPACE}/docker-compose.env" >> $GITHUB_ENV
+
+      - name: Run PHPCS
+        run: |
+          . pmc-manifest
+          . pmc-test-phpcs
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

@@ -1,0 +1,143 @@
+name: Unit Tests
+
+on:
+  workflow_call:
+    secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: true
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: true
+      SONAR_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+  # To allow SonarCloud to post to PR.
+  pull-requests: write
+
+jobs:
+  phpunit:
+    name: PHP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '7.4'
+            wordpress: 'latest'
+            check_code_coverage: true
+            continue_on_error: false
+          - php: '7.4'
+            wordpress: 'nightly'
+            check_code_coverage: false
+            continue_on_error: true
+          - php: '8.0'
+            wordpress: 'latest'
+            check_code_coverage: false
+            continue_on_error: true
+          - php: '8.0'
+            wordpress: 'nightly'
+            check_code_coverage: false
+            continue_on_error: true
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          git_checkout_fetch_depth: 0
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          php_version: ${{ matrix.php }}
+          phpunit: 1
+          wordpress_version: ${{ matrix.wordpress }}
+
+      - name: Run PHPUnit
+        continue-on-error: ${{ matrix.continue_on_error }}
+        run: |
+          # Capture coverage reports for processing with Sonar.
+          export PMC_ARTIFACTS=true
+
+          . pmc-manifest
+          . pmc-test-phpunit
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
+      - name: Capture coverage reports
+        id: capture-coverage-reports
+        uses: actions/upload-artifact@v3
+        if: ${{ matrix.check_code_coverage }}
+        with:
+          name: phpunit-coverage
+          path: ${{ github.workspace }}/artifacts/*.xml
+          if-no-files-found: warn
+
+  jest:
+    name: JS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          git_checkout_fetch_depth: 0
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          nodejs: 1
+
+      - name: Run npm test
+        run: |
+          . "$NVM_DIR/nvm.sh"
+          . pmc-test-npm
+
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [ phpunit, jest ]
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+        with:
+          # Shallow clones should be disabled for a better relevancy of analysis.
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: phpunit-coverage
+          path: ${{ github.workspace }}/artifacts
+
+      - name: Fix paths in coverage reports
+        run: |
+          # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
+          for REPORT in ./artifacts/coverage-*.xml; do
+            sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
+          done
+
+      - name: Set Sonar variables
+        run: |
+          if [[ -d ./artifacts ]]; then
+            ls -l ./artifacts
+
+            echo "sonar.php.coverage.reportPaths=$(find ./artifacts -type f -name '*.xml' | tr '\n', ',' | sed 's/,$//g')" >> "./sonar-project.properties"
+
+            cat ./sonar-project.properties
+          else
+            ls -l .
+            exit 1
+          fi
+
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          # Token needed to get PR information, if any.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
