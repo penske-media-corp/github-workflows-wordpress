@@ -19,7 +19,7 @@ jobs:
   phpunit:
     name: PHP
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     strategy:
@@ -78,7 +78,7 @@ jobs:
   jest:
     name: JS
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
@@ -98,7 +98,7 @@ jobs:
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     needs: [ phpunit, jest ]
 
     steps:

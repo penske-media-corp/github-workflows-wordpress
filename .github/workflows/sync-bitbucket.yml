@@ -24,7 +24,7 @@ jobs:
   push:
     name: Push to Bitbucket
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     if: ${{ github.event_name == 'push' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
@@ -64,7 +64,7 @@ jobs:
   delete:
     name: Delete from Bitbucket
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     if: ${{ github.event_name == 'delete' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
