@@ -22,6 +22,12 @@ jobs:
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
+    services:
+      memcached:
+        image: memcached:alpine
+        ports:
+          - 11211/tcp
+
     strategy:
       fail-fast: false
       matrix:
