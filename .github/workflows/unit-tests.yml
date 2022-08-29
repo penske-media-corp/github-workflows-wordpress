@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   phpunit:
-    name: "PHP: ${{ matrix.php }}, WP: ${{ matrix.wordpress }}, allowed to fail: ${{ matrix.continue_on_error }}"
+    name: "PHP: ${{ matrix.php }}, WP: ${{ matrix.wordpress }}"
     runs-on: ubuntu-latest
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
