@@ -64,10 +64,15 @@ jobs:
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
           # Capture coverage reports for processing with Sonar.
-          export PMC_ARTIFACTS=true
+          export PMC_ARTIFACTS=${{ matrix.check_code_coverage }}
 
           . pmc-manifest
           . pmc-test-phpunit
+
+          # Ensure an artifact is uploaded, or `download-artifacts` will fail.
+          if [[ ${{ matrix.check_code_coverage }} ]]; then
+            touch ${{ github.workspace }}/artifacts/pmc
+          fi
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -79,7 +84,7 @@ jobs:
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts/*.xml
-          if-no-files-found: warn
+          if-no-files-found: error
 
   jest:
     name: JS
@@ -115,16 +120,13 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
 
-      # This step fails if there are no artifacts, so subsequent steps require `if` checks to proceed.
       - name: Download artifacts
-        id: download-artifacts
         uses: actions/download-artifact@v3
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts
 
       - name: Fix paths in coverage reports
-        if: ${{ steps.download-artifacts.conclusion == 'success' }}
         run: |
           # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
           for REPORT in ./artifacts/coverage-*.xml; do
@@ -132,8 +134,6 @@ jobs:
           done
 
       - name: Set Sonar variables
-        id: set-sonar-vars
-        if: ${{ always() }}
         run: |
           if [[ -d ./artifacts ]]; then
             ls -l ./artifacts
@@ -146,7 +146,6 @@ jobs:
           fi
 
       - name: Analyze with SonarCloud
-        if: ${{ always() }}
         uses: SonarSource/sonarcloud-github-action@master
         env:
           # Token needed to get PR information, if any.
