@@ -64,10 +64,16 @@ jobs:
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
           # Capture coverage reports for processing with Sonar.
-          export PMC_ARTIFACTS=true
+          export PMC_ARTIFACTS=${{ matrix.check_code_coverage }}
 
           . pmc-manifest
           . pmc-test-phpunit
+
+          # Ensure an artifact is uploaded, or `download-artifacts` will fail.
+          if [[ "true" == "${{ matrix.check_code_coverage }}" && ! -d ${{ github.workspace }}/artifacts ]]; then
+            mkdir ${{ github.workspace }}/artifacts
+            touch ${{ github.workspace }}/artifacts/pmc
+          fi
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
@@ -78,8 +84,10 @@ jobs:
         if: ${{ matrix.check_code_coverage }}
         with:
           name: phpunit-coverage
-          path: ${{ github.workspace }}/artifacts/*.xml
-          if-no-files-found: warn
+          path: |
+            ${{ github.workspace }}/artifacts/pmc
+            ${{ github.workspace }}/artifacts/*.xml
+          if-no-files-found: error
 
   jest:
     name: JS
@@ -123,8 +131,14 @@ jobs:
 
       - name: Fix paths in coverage reports
         run: |
+          if [[ -z "$(find ./artifacts -type f -name 'coverage-*.xml')" ]]; then
+            echo "No reports to update"
+            exit 0
+          fi
+
           # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
           for REPORT in ./artifacts/coverage-*.xml; do
+            echo "Updating paths in ${REPORT}"
             sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
           done
 
@@ -133,12 +147,11 @@ jobs:
           if [[ -d ./artifacts ]]; then
             ls -l ./artifacts
 
-            echo "sonar.php.coverage.reportPaths=$(find ./artifacts -type f -name '*.xml' | tr '\n', ',' | sed 's/,$//g')" >> "./sonar-project.properties"
+            echo "sonar.php.coverage.reportPaths=$(find ./artifacts -type f -name 'coverage-*.xml' | tr '\n', ',' | sed 's/,$//g')" >> "./sonar-project.properties"
 
             cat ./sonar-project.properties
           else
-            ls -l .
-            exit 1
+            echo "sonar.php.coverage.reportPaths=" >> "./sonar-project.properties"
           fi
 
       - name: Analyze with SonarCloud
