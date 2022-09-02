@@ -133,7 +133,7 @@ jobs:
 
       - name: Set Sonar variables
         id: set-sonar-vars
-        if: ${{ success() || failure() }}
+        if: ${{ always() }}
         run: |
           if [[ -d ./artifacts ]]; then
             ls -l ./artifacts
@@ -146,7 +146,7 @@ jobs:
           fi
 
       - name: Analyze with SonarCloud
-        if: ${{ steps.set-sonar-vars.conclusion == 'success' }}
+        if: ${{ always() }}
         uses: SonarSource/sonarcloud-github-action@master
         env:
           # Token needed to get PR information, if any.
