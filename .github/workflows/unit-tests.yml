@@ -72,7 +72,7 @@ jobs:
           # Ensure an artifact is uploaded, or `download-artifacts` will fail.
           if [[ "true" == "${{ matrix.check_code_coverage }}" && ! -d ${{ github.workspace }}/artifacts ]]; then
             mkdir ${{ github.workspace }}/artifacts
-            touch ${{ github.workspace }}/artifacts/pmc
+            touch ${{ github.workspace }}/artifacts/pmc.xml
           fi
 
       - name: Ensure version-controlled files are not modified during the tests
