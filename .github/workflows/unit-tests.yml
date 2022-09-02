@@ -70,7 +70,8 @@ jobs:
           . pmc-test-phpunit
 
           # Ensure an artifact is uploaded, or `download-artifacts` will fail.
-          if [[ ${{ matrix.check_code_coverage }} ]]; then
+          if [[ ${{ matrix.check_code_coverage }} && ! -d ${{ github.workspace }}/artifacts ]]; then
+            mkdir ${{ github.workspace }}/artifacts
             touch ${{ github.workspace }}/artifacts/pmc
           fi
 
