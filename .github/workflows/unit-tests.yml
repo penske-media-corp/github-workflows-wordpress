@@ -72,7 +72,7 @@ jobs:
           # Ensure an artifact is uploaded, or `download-artifacts` will fail.
           if [[ "true" == "${{ matrix.check_code_coverage }}" && ! -d ${{ github.workspace }}/artifacts ]]; then
             mkdir ${{ github.workspace }}/artifacts
-            touch ${{ github.workspace }}/artifacts/pmc.xml
+            touch ${{ github.workspace }}/artifacts/pmc
           fi
 
       - name: Ensure version-controlled files are not modified during the tests
@@ -84,7 +84,9 @@ jobs:
         if: ${{ matrix.check_code_coverage }}
         with:
           name: phpunit-coverage
-          path: ${{ github.workspace }}/artifacts/*.xml
+          path: |
+            ${{ github.workspace }}/artifacts/pmc
+            ${{ github.workspace }}/artifacts/*.xml
           if-no-files-found: error
 
   jest:
