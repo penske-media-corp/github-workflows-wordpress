@@ -132,11 +132,13 @@ jobs:
       - name: Fix paths in coverage reports
         run: |
           if [[ -z "$(find ./artifacts -type f -name 'coverage-*.xml')" ]]; then
+            echo "No reports to update"
             exit 0
           fi
 
           # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
           for REPORT in ./artifacts/coverage-*.xml; do
+            echo "Updating paths in ${REPORT}"
             sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
           done
 
