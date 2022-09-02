@@ -116,12 +116,14 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
 
       - name: Download artifacts
+        id: download-artifacts
         uses: actions/download-artifact@v3
         with:
           name: phpunit-coverage
           path: ${{ github.workspace }}/artifacts
 
       - name: Fix paths in coverage reports
+        if: ${{ steps.download-artifacts.conclusion == 'success' }}
         run: |
           # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
           for REPORT in ./artifacts/coverage-*.xml; do
@@ -129,6 +131,7 @@ jobs:
           done
 
       - name: Set Sonar variables
+        if: ${{ success() || failure() }}
         run: |
           if [[ -d ./artifacts ]]; then
             ls -l ./artifacts
@@ -137,8 +140,7 @@ jobs:
 
             cat ./sonar-project.properties
           else
-            ls -l .
-            exit 1
+            echo "sonar.php.coverage.reportPaths=" >> "./sonar-project.properties"
           fi
 
       - name: Analyze with SonarCloud
