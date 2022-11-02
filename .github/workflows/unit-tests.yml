@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   phpunit:
-    name: "PHP: ${{ matrix.php }}, WP: ${{ matrix.wordpress }}"
+    name: "PHP: ${{ matrix.job_label_php }}, WP: ${{ matrix.job_label_wordpress }}"
     runs-on: ubuntu-latest
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
@@ -36,18 +36,26 @@ jobs:
             wordpress: '6.0.3'
             check_code_coverage: true
             continue_on_error: false
+            job_label_php: 'current'
+            job_label_wordpress: 'latest'
           - php: '7.4'
             wordpress: 'nightly'
             check_code_coverage: false
             continue_on_error: true
+            job_label_php: 'current'
+            job_label_wordpress: 'nightly'
           - php: '8.0'
             wordpress: 'latest'
             check_code_coverage: false
             continue_on_error: true
+            job_label_php: 'next'
+            job_label_wordpress: 'latest'
           - php: '8.0'
             wordpress: 'nightly'
             check_code_coverage: false
             continue_on_error: true
+            job_label_php: 'next'
+            job_label_wordpress: 'nightly'
 
     steps:
       - name: Prepare environment
