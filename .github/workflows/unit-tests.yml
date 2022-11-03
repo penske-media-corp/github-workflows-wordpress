@@ -63,6 +63,8 @@ jobs:
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
+          cd /home/runner/work/_temp/wp/core/wp-content/themes/vip/pmc-artnews-2019
+          
           # Capture coverage reports for processing with Sonar.
           export PMC_ARTIFACTS=${{ matrix.check_code_coverage }}
 
