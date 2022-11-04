@@ -86,7 +86,6 @@ jobs:
           npm run build-html -- project
 
       - name: Assume IAM role
-        if: github.ref != 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
