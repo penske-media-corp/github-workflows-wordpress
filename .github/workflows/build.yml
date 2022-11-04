@@ -48,7 +48,7 @@ jobs:
     name: Assets
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: false
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
       - name: Checkout
