@@ -2,14 +2,46 @@ name: Build
 
 on:
   workflow_call:
+    inputs:
+      AWS_ACCOUNT_NUMBER:
+        default: ''
+        description: 'The AWS Account number'
+        required: true
+        type: string
+      AWS_REGION:
+        default: 'us-west-2'
+        description: 'The AWS Region to deploy to'
+        required: false
+        type: string
+      BUCKET_IDENTIFIER:
+        default: ''
+        description: 'The S3 bucket identifier, typically the name of the repository'
+        required: true
+        type: string
+      BUSINESS_UNIT:
+        default: 'pmc'
+        description: 'The business unit'
+        required: false
+        type: string
+      ENVIRONMENT:
+        default: ''
+        description: 'The environment name'
+        required: true
+        type: string
+
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
       GITHUB_READ_ONLY_SSH_KEY:
         required: true
-
-permissions:
-  contents: read
+      PROD_ACCESS_KEY:
+        required: true
+      PROD_SECRET_ACCESS_KEY:
+        required: true
+      STG_ACCESS_KEY:
+        required: true
+      STG_SECRET_ACCESS_KEY:
+        required: true
 
 jobs:
   assets:
@@ -19,7 +51,66 @@ jobs:
     if: false
 
     steps:
-      - name: Build static assets
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set bucket name variable
         run: |
-          echo "Not implemented"
-          exit 0
+          echo "S3_BUCKET_NAME=tf-${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMENT }}-${{ inputs.BUCKET_IDENTIFIER }}-larva-${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Run larva
+        run: |
+          cd assets
+          npm ci
+          npm run larva& #Run as background task
+
+      - name: Run build-html scripts
+        run: |
+          cd assets
+          npm run build-html -- larva
+          npm run build-html -- project
+
+      - name: Assume Devops-Admin IAM role Staging
+        if: github.ref != 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.STG_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.STG_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
+          role-duration-seconds: 1200
+          role-session-name: ${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMNET }}
+          role-skip-session-tagging: true
+
+      - name: Assume Devops-Admin IAM role Production
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.PROD_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.PROD_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
+          role-duration-seconds: 1200
+          role-session-name: ${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMNET }}
+          role-skip-session-tagging: true
+
+      - name: Remove files from S3
+        run: |
+          aws s3 rm s3://${S3_BUCKET_NAME}/ --recursive
+
+      - name: Copy assets to S3
+        run: |
+          aws s3 cp assets/build/html/ s3://${S3_BUCKET_NAME}/ --recursive
