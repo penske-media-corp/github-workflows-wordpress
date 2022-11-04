@@ -28,19 +28,21 @@ on:
         description: 'The environment name'
         required: true
         type: string
+      IAM_ROLE_NAME:
+        default: ''
+        description: 'The AWS IAM Role to assume'
+        required: true
+        type: string
+      S3_BUCKET_NAME:
+        default: ''
+        description: 'The S3 Bucket that the static assets are being deployed to'
+        required: true
+        type: string
 
     secrets:
-      BITBUCKET_READ_ONLY_SSH_KEY:
+      AWS_ACCESS_KEY_ID:
         required: true
-      GITHUB_READ_ONLY_SSH_KEY:
-        required: true
-      PROD_ACCESS_KEY:
-        required: true
-      PROD_SECRET_ACCESS_KEY:
-        required: true
-      STG_ACCESS_KEY:
-        required: true
-      STG_SECRET_ACCESS_KEY:
+      AWS_SECRET_ACCESS_KEY:
         required: true
 
 jobs:
@@ -54,9 +56,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set bucket name variable
-        run: |
-          echo "S3_BUCKET_NAME=tf-${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMENT }}-${{ inputs.BUCKET_IDENTIFIER }}-larva-${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
+#      - name: Set bucket name variable
+#        run: |
+#          echo "S3_BUCKET_NAME=tf-${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMENT }}-${{ inputs.BUCKET_IDENTIFIER }}-larva-${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -83,34 +85,22 @@ jobs:
           npm run build-html -- larva
           npm run build-html -- project
 
-      - name: Assume Devops-Admin IAM role Staging
+      - name: Assume IAM role
         if: github.ref != 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.STG_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.STG_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
-          role-duration-seconds: 1200
-          role-session-name: ${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMNET }}
-          role-skip-session-tagging: true
-
-      - name: Assume Devops-Admin IAM role Production
-        if: github.ref == 'refs/heads/main'
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.PROD_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.PROD_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/Devops-Admin
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/${{ inputs.IAM_ROLE_NAME }}
           role-duration-seconds: 1200
           role-session-name: ${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMNET }}
           role-skip-session-tagging: true
 
       - name: Remove files from S3
         run: |
-          aws s3 rm s3://${S3_BUCKET_NAME}/ --recursive
+          aws s3 rm s3://${{ inputs.S3_BUCKET_NAME }}/ --recursive
 
       - name: Copy assets to S3
         run: |
-          aws s3 cp assets/build/html/ s3://${S3_BUCKET_NAME}/ --recursive
+          aws s3 cp assets/build/html/ s3://${{ inputs.S3_BUCKET_NAME }}/ --recursive
