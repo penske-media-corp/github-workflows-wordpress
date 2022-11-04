@@ -2,6 +2,12 @@ name: Unit Tests
 
 on:
   workflow_call:
+    inputs:
+      VIP_THEME:
+        description: 'If the theme is a vip theme'
+        required: true
+        type: boolean
+
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
