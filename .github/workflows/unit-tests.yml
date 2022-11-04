@@ -72,6 +72,7 @@ jobs:
           github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
           php_version: ${{ matrix.php }}
           phpunit: 1
+          vip_theme: ${{ inputs.VIP_THEME }}
           wordpress_version: ${{ matrix.wordpress }}
 
       - name: Run PHPUnit
