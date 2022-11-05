@@ -56,10 +56,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-#      - name: Set bucket name variable
-#        run: |
-#          echo "S3_BUCKET_NAME=tf-${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMENT }}-${{ inputs.BUCKET_IDENTIFIER }}-larva-${{ inputs.AWS_REGION }}" >> $GITHUB_ENV
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -99,9 +95,6 @@ jobs:
       - name: Remove files from S3
         run: |
           aws s3 rm s3://${{ inputs.S3_BUCKET_NAME }}/ --recursive
-        env:
-          AWS_REGION: ${{ inputs.AWS_REGION }}
-          BUSINESS_UNIT: ${{ inputs.BUSINESS_UNIT }}
 
       - name: Copy assets to S3
         run: |
