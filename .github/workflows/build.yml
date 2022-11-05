@@ -100,8 +100,8 @@ jobs:
         run: |
           aws s3 rm s3://${{ inputs.S3_BUCKET_NAME }}/ --recursive
         env:
-          - AWS_REGION: ${{ inputs.AWS_REGION }}
-          - BUSINESS_UNIT: ${{ inputs.BUSINESS_UNIT }}
+          AWS_REGION: ${{ inputs.AWS_REGION }}
+          BUSINESS_UNIT: ${{ inputs.BUSINESS_UNIT }}
 
       - name: Copy assets to S3
         run: |
