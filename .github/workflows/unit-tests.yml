@@ -22,7 +22,7 @@ permissions:
   pull-requests: write
 
 env:
-  THEMES_DIR: ${{ env.WP_CORE_DIR }}/wp-content/themes
+  THEMES_DIR: "${WP_CORE_DIR}/wp-content/themes"
 
 jobs:
   phpunit:
