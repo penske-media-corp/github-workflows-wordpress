@@ -10,7 +10,6 @@ on:
       WP_CORE_DIR:
         description: 'Wordpress core directory'
         default: '/home/runner/work/_temp/wp'
-        required: true
         type: string
 
     secrets:
