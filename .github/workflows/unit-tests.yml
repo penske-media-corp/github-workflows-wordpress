@@ -7,10 +7,6 @@ on:
         description: 'If the theme is a vip theme'
         required: true
         type: boolean
-      WP_CORE_DIR:
-        description: 'Wordpress core directory'
-        default: '/home/runner/work/_temp/wp'
-        type: string
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
@@ -26,7 +22,7 @@ permissions:
   pull-requests: write
 
 env:
-  THEMES_DIR: ${{ inputs.WP_CORE_DIR }}/core/wp-content/themes
+  THEMES_DIR: ${{ env.WP_CORE_DIR }}/wp-content/themes
 
 jobs:
   phpunit:
