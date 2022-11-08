@@ -1,0 +1,104 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      AWS_ACCOUNT_NUMBER:
+        default: ''
+        description: 'The AWS Account number'
+        required: true
+        type: string
+      AWS_REGION:
+        default: 'us-west-2'
+        description: 'The AWS Region to deploy to'
+        required: false
+        type: string
+      BUCKET_IDENTIFIER:
+        default: ''
+        description: 'The S3 bucket identifier, typically the name of the repository'
+        required: true
+        type: string
+      BUSINESS_UNIT:
+        default: 'pmc'
+        description: 'The business unit'
+        required: false
+        type: string
+      ENVIRONMENT:
+        default: ''
+        description: 'The environment name'
+        required: true
+        type: string
+      IAM_ROLE_NAME:
+        default: ''
+        description: 'The AWS IAM Role to assume'
+        required: true
+        type: string
+      S3_BUCKET_NAME:
+        default: ''
+        description: 'The S3 Bucket that the static assets are being deployed to'
+        required: true
+        type: string
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  assets:
+    name: Assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: 'assets/.nvmrc'
+          cache: npm
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: npm-
+
+      - name: Run larva
+        run: |
+          cd assets
+          npm install
+          npm run larva& #Run as background task
+
+      - name: Run build-html scripts
+        run: |
+          cd assets
+          npm run build-html -- larva
+          npm run build-html -- project
+
+      - name: Assume IAM role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_NUMBER }}:role/${{ inputs.IAM_ROLE_NAME }}
+          role-duration-seconds: 1200
+          role-session-name: ${{ inputs.BUSINESS_UNIT }}-${{ inputs.ENVIRONMENT }}
+          role-skip-session-tagging: true
+
+      - name: Remove files from S3
+        run: |
+          aws s3 rm s3://${{ inputs.S3_BUCKET_NAME }}/ --recursive
+
+      - name: Copy assets to S3
+        run: |
+          aws s3 cp assets/build/html/ s3://${{ inputs.S3_BUCKET_NAME }}/ --recursive

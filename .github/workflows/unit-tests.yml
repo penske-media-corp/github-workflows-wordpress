@@ -2,6 +2,12 @@ name: Unit Tests
 
 on:
   workflow_call:
+    inputs:
+      VIP_THEME:
+        description: 'If the theme is a vip theme'
+        required: true
+        type: boolean
+
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
@@ -14,6 +20,9 @@ permissions:
   contents: read
   # To allow SonarCloud to post to PR.
   pull-requests: write
+
+env:
+  THEMES_DIR: "${WP_CORE_DIR}/wp-content/themes"
 
 jobs:
   phpunit:
@@ -59,18 +68,27 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        uses: penske-media-corp/github-action-wordpress-test-setup@feature/bb-migration
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
           github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
           php_version: ${{ matrix.php }}
           phpunit: 1
+          vip_theme: ${{ inputs.VIP_THEME }}
           wordpress_version: ${{ matrix.wordpress }}
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
+          if [[ "${{ inputs.VIP_THEME }}" == true ]]; then
+            echo "vip theme is set to true"
+            cd ${{ env.THEMES_DIR }}/vip/${{ github.event.repository.name }}
+          else
+            echo "vip theme is set to false"
+            cd ${{ env.THEMES_DIR }}/${{ github.event.repository.name }}
+          fi
+
           # Capture coverage reports for processing with Sonar.
           export PMC_ARTIFACTS=${{ matrix.check_code_coverage }}
 
@@ -105,7 +123,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        uses: penske-media-corp/github-action-wordpress-test-setup@feature/bb-migration
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
