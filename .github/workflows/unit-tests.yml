@@ -7,6 +7,11 @@ on:
         description: 'If the theme is a vip theme'
         required: true
         type: boolean
+      WP_CORE_DIR:
+        description: 'Wordpress core directory'
+        default: ''
+        required: true
+        type: string
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
@@ -20,6 +25,9 @@ permissions:
   contents: read
   # To allow SonarCloud to post to PR.
   pull-requests: write
+
+env:
+  THEMES_DIR: ${{ inputs.WP_CORE_DIR }}/core/wp-content/themes
 
 jobs:
   phpunit:
@@ -80,10 +88,10 @@ jobs:
         run: |
           if [[ "${{ inputs.VIP_THEME }}" == true ]]; then
             echo "vip theme is set to true"
-            cd /home/runner/work/_temp/wp/core/wp-content/themes/vip/${{ github.event.repository.name }}
+            cd ${{ env.THEMES_DIR }}/vip/${{ github.event.repository.name }}
           else
             echo "vip theme is set to false"
-            cd /home/runner/work/_temp/wp/core/wp-content/themes/${{ github.event.repository.name }}
+            cd ${{ env.THEMES_DIR }}/${{ github.event.repository.name }}
           fi
 
           # Capture coverage reports for processing with Sonar.
