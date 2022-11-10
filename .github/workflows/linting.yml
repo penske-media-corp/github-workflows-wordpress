@@ -22,12 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '7.4'
+          - php: '8.0'
             continue_on_error: false
             job_label: 'current'
-          - php: '8.0'
-            continue_on_error: true
-            job_label: 'next'
 
     steps:
       - name: Prepare environment
