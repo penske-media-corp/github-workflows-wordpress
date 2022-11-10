@@ -47,24 +47,6 @@ jobs:
             continue_on_error: false
             job_label_php: 'current'
             job_label_wordpress: 'latest'
-          - php: '7.4'
-            wordpress: 'nightly'
-            check_code_coverage: false
-            continue_on_error: true
-            job_label_php: 'current'
-            job_label_wordpress: 'nightly'
-          - php: '8.0'
-            wordpress: 'latest'
-            check_code_coverage: false
-            continue_on_error: true
-            job_label_php: 'next'
-            job_label_wordpress: 'latest'
-          - php: '8.0'
-            wordpress: 'nightly'
-            check_code_coverage: false
-            continue_on_error: true
-            job_label_php: 'next'
-            job_label_wordpress: 'nightly'
 
     steps:
       - name: Prepare environment
