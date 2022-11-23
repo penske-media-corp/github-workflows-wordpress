@@ -67,7 +67,7 @@ jobs:
             if [[ "${{ inputs.VIP_THEME }}" == true ]]; then
               echo "vip theme is set to true"
               pwd
-              ls-la
+              ls
               cd ${{ env.THEMES_DIR }}/vip/${{ github.event.repository.name }}
             else
               echo "vip theme is set to false"
