@@ -63,6 +63,8 @@ jobs:
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
         run: |
+          pwd
+          ls
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
             if [[ "${{ inputs.VIP_THEME }}" == true ]]; then
               echo "vip theme is set to true"
