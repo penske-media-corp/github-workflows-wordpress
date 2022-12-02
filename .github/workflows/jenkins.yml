@@ -1,0 +1,36 @@
+name: Jenkins
+
+on:
+  workflow_call:
+  inputs:
+    jenkins_url:
+      default: ''
+      description: 'Destination Jenkins URL.'
+      required: true
+      type: string
+    job_name:
+      default: ''
+      description: 'Jenkins Job Name.'
+      required: true
+      type: string
+    parameters:
+      default: ''
+      description: 'Query string attaching to Jenkins URL.'
+      required: false
+      type: string
+
+    secrets:
+      JENKINS_BUILD_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  jenkins:
+    name: Jenkins
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Job By Token
+        run: |
+          curl -s -o /dev/null -D -  "${{ inputs.jenkins_url }}?job=${{ inputs.job_name }}&token=${{ secrets.JENKINS_BUILD_TOKEN }}&${{ inputs.parameters }}"
