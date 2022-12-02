@@ -27,29 +27,29 @@ jobs:
           git fetch
 
           # make sure qa is latest
-          git checkout feature/qa-sync-test
+          git checkout qa
           git pull
 
           # make sure main is latest
-          git checkout feature/PMCS-5327-jenkins
+          git checkout main
           git pull
 
           # create a temporary sync-master2qa branch to resolve conflict
           git checkout -b sync-main2qa
           # merge qa into sync-main2qa auto resolve by taking master branch code
-          git merge -s ours --no-edit --allow-unrelated-histories feature/qa-sync-test
+          git merge -s ours --no-edit --allow-unrelated-histories qa
 
           # merge temp branch sync-main2qa into qa
-          git checkout feature/qa-sync-test
+          git checkout qa
           git merge --no-edit --allow-unrelated-histories sync-main2qa
 
           # remove the temp branch we just created
           git branch -D sync-main2qa
 
           # push code back to qa
-          git push origin feature/qa-sync-test
+          git push origin qa
 
           # Deploy qa branch to pmcqa
-          gh workflow run "${{ inputs.WORKFLOW_DISPATCH_NAME }}" -r "feature/qa-sync-test"
+          gh workflow run "${{ inputs.WORKFLOW_DISPATCH_NAME }}" -r "qa"
 
 
