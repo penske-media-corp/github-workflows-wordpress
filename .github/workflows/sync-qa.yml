@@ -1,5 +1,9 @@
 name: Sync qa branch
 
+on:
+  push:
+    - feature/PMCS-5327-jenkins
+
 permissions:
   contents: read
 
@@ -15,8 +19,26 @@ jobs:
             git config --local user.name "Github Actions"
       - name: Merge main back to qa
         run: |
-            git fetch --unshallow
-            git checkout feature/qa-sync-test
-            git pull
-            git merge --no-ff main -m "Auto-merge main back to qa"
-            git push
+          # make sure qa is latest
+          git checkout feature/qa-sync-test
+          git pull
+
+          # make sure main is latest
+          git checkout feature/PMCS-5327-jenkins
+          git pull
+
+          # create a temporary sync-master2qa branch to resolve conflict
+          git checkout -b sync-main2qa
+          # merge qa into sync-main2qa auto resolve by taking master branch code
+          git merge -s ours feature/qa-sync-test
+
+          # merge temp branch sync-main2qa into qa
+          git checkout feature/qa-sync-test
+          git merge sync-main2qa
+
+          # remove the temp branch we just created
+          git branch -D sync-main2qa
+
+          # push code back to qa
+          git push origin feature/qa-sync-test
+
