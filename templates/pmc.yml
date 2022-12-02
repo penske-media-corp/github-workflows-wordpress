@@ -42,3 +42,7 @@ jobs:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  merge-main-to-qa:
+    name: Merge main to qa
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/sync-qa.yml@main

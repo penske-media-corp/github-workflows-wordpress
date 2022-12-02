@@ -1,14 +1,20 @@
-name: Sync qa branch
+name: Merge main to qa
 
 on:
   workflow_call:
+    inputs:
+      WORKFLOW_DISPATCH_NAME:
+        default: 'Jenkins'
+        description: 'Workflow to trigger after sync.'
+        required: false
+        type: string
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  sync-qa:
-    name: Sync
+  merge-main-to-qa:
+    name: Merge
     runs-on: ubuntu-latest
 
     steps:
@@ -43,5 +49,7 @@ jobs:
           # push code back to qa
           git push origin feature/qa-sync-test
 
-          gh workflow run "qa sync" -r "feature/qa-sync-test"
+          # Deploy qa branch to pmcqa
+          gh workflow run "${{ inputs.WORKFLOW_DISPATCH_NAME }}" -r "feature/qa-sync-test"
+
 
