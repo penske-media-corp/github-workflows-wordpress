@@ -18,6 +18,8 @@ jobs:
             git config --local user.name "Github Actions"
       - name: Merge main back to qa
         run: |
+          git fetch
+
           # make sure qa is latest
           git checkout feature/qa-sync-test
           git pull
