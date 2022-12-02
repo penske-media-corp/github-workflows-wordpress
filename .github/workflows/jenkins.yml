@@ -33,4 +33,4 @@ jobs:
     steps:
       - name: Trigger Job By Token
         run: |
-          curl -s -o /dev/null -D -  "${{ inputs.jenkins_url }}?job=${{ inputs.job_name }}&token=${{ secrets.JENKINS_BUILD_TOKEN }}&${{ inputs.parameters }}"
+          echo "${{ inputs.jenkins_url }}?job=${{ inputs.job_name }}&token=${{ secrets.JENKINS_BUILD_TOKEN }}&${{ inputs.parameters }}"
