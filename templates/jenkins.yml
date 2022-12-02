@@ -1,0 +1,14 @@
+name: Jenkins
+
+on: [push]
+
+jobs:
+  jenkins:
+    name: Jenkins
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/jenkins.yml@main
+    with:
+      JENKINS_URL: https://JENKINS_HOSTNAME/buildByToken/buildWithParameters
+      JOB_NAME: JOB_NAME
+      PARAMETERS: "branch=main&theme=THEME"
+    secrets:
+      JENKINS_BUILD_TOKEN: ${{ secrets.JENKINS_BUILD_TOKEN }}
