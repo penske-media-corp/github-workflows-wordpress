@@ -3,17 +3,17 @@ name: Jenkins
 on:
   workflow_call:
     inputs:
-      jenkins_url:
+      JENKINS_URL:
         default: ''
         description: 'Destination Jenkins URL.'
         required: true
         type: string
-      job_name:
+      JOB_NAME:
         default: ''
         description: 'Jenkins Job Name.'
         required: true
         type: string
-      parameters:
+      PARAMETERS:
         default: ''
         description: 'Query string attaching to Jenkins URL.'
         required: false
@@ -32,4 +32,4 @@ jobs:
     steps:
       - name: Trigger Job By Token
         run: |
-          echo "${{ inputs.jenkins_url }}?job=${{ inputs.job_name }}&token=${{ secrets.JENKINS_BUILD_TOKEN }}&${{ inputs.parameters }}"
+          curl -s -o /dev/null -D -  "${{ inputs.JENKINS_URL }}?job=${{ inputs.JOB_NAME }}&token=${{ secrets.JENKINS_BUILD_TOKEN }}&${{ inputs.PARAMETERS }}"
