@@ -2,23 +2,22 @@ name: Jenkins
 
 on:
   workflow_call:
-  inputs:
-    jenkins_url:
-      default: ''
-      description: 'Destination Jenkins URL.'
-      required: true
-      type: string
-    job_name:
-      default: ''
-      description: 'Jenkins Job Name.'
-      required: true
-      type: string
-    parameters:
-      default: ''
-      description: 'Query string attaching to Jenkins URL.'
-      required: false
-      type: string
-
+    inputs:
+      jenkins_url:
+        default: ''
+        description: 'Destination Jenkins URL.'
+        required: true
+        type: string
+      job_name:
+        default: ''
+        description: 'Jenkins Job Name.'
+        required: true
+        type: string
+      parameters:
+        default: ''
+        description: 'Query string attaching to Jenkins URL.'
+        required: false
+        type: string
     secrets:
       JENKINS_BUILD_TOKEN:
         required: true
