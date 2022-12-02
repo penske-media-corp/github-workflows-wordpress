@@ -35,7 +35,7 @@ jobs:
 
           # merge temp branch sync-main2qa into qa
           git checkout feature/qa-sync-test
-          git merge --no-edit sync-main2qa
+          git merge --no-edit --allow-unrelated-histories sync-main2qa
 
           # remove the temp branch we just created
           git branch -D sync-main2qa
