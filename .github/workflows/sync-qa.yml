@@ -3,9 +3,6 @@ name: Sync qa branch
 on:
   workflow_call:
 
-permissions:
-  contents: read|write
-
 jobs:
   sync-qa:
     name: Sync
