@@ -9,14 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set Git config
-      run: |
-          git config --local user.name "Github Actions"
-    - name: Merge main back to qa
-      run: |
-          git fetch --unshallow
-          git checkout feature/qa-sync-test
-          git pull
-          git merge --no-ff main -m "Auto-merge main back to qa"
-          git push
+      - uses: actions/checkout@v2
+      - name: Set Git config
+        run: |
+            git config --local user.name "Github Actions"
+      - name: Merge main back to qa
+        run: |
+            git fetch --unshallow
+            git checkout feature/qa-sync-test
+            git pull
+            git merge --no-ff main -m "Auto-merge main back to qa"
+            git push
