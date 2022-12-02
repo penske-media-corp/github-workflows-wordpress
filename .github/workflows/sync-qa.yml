@@ -40,3 +40,5 @@ jobs:
           # push code back to qa
           git push origin feature/qa-sync-test
 
+          gh workflow run jenkins.yml --ref feature/qa-sync-test
+
