@@ -15,7 +15,7 @@ on:
         type: string
       PARAMETERS:
         default: ''
-        description: 'Query string attaching to Jenkins URL.'
+        description: 'Passing parameters to Jenkins Job with query string.'
         required: false
         type: string
     secrets:
