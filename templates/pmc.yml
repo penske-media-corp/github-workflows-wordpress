@@ -45,4 +45,4 @@ jobs:
 
   merge-main-to-qa:
     name: Merge main to qa
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/sync-qa.yml@main
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/merge-main-to-qa.yml@main
