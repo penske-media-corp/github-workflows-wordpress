@@ -3,6 +3,9 @@ name: Sync qa branch
 on:
   workflow_call:
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   sync-qa:
     name: Sync
