@@ -31,7 +31,7 @@ jobs:
           # create a temporary sync-master2qa branch to resolve conflict
           git checkout -b sync-main2qa
           # merge qa into sync-main2qa auto resolve by taking master branch code
-          git merge -s ours --no-edit feature/qa-sync-test
+          git merge -s ours --no-edit --allow-unrelated-histories feature/qa-sync-test
 
           # merge temp branch sync-main2qa into qa
           git checkout feature/qa-sync-test
