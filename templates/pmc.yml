@@ -9,35 +9,35 @@ on:
 jobs:
   build:
     name: Build
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/build.yml@feature/fix-soaps
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/build.yml@main
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
 
   coding-standards:
     name: Coding Standards
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/coding-standards.yml@feature/fix-soaps
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/coding-standards.yml@main
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
 
   linting:
     name: Linting
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/linting.yml@feature/fix-soaps
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/linting.yml@main
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
 
   qat:
     name: QAT
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/qat.yml@feature/fix-soaps
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/qat.yml@main
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
 
   unit-tests:
     name: Unit Tests
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/unit-tests.yml@feature/fix-soaps
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/unit-tests.yml@main
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
