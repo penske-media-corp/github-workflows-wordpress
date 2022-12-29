@@ -9,7 +9,7 @@ on:
 jobs:
   bitbucket:
     name: Bitbucket
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/sync-bitbucket.yml@main
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/sync-bitbucket.yml@feature/fix-soaps
     with:
       repo_url: git@bitbucket.org:REPO_ORG/REPO_SLUG.git
     secrets:
