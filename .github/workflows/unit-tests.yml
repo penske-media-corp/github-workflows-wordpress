@@ -66,6 +66,8 @@ jobs:
           if [[ -z "${PMC_IS_PMC_PLUGINS}" ]]; then
             if [[ "${{ inputs.VIP_THEME }}" == true ]]; then
               echo "vip theme is set to true"
+              ls -la ${{ env.THEMES_DIR }}
+              ls -la ${{ env.THEMES_DIR }}/vip
               cd ${{ env.THEMES_DIR }}/vip/${{ github.event.repository.name }}
             else
               echo "vip theme is set to false"
