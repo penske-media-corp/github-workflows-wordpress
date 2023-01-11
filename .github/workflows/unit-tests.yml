@@ -119,6 +119,9 @@ jobs:
           . "$NVM_DIR/nvm.sh"
           . pmc-test-npm
 
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
