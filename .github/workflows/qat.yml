@@ -21,7 +21,7 @@ on:
         required: true
 
 env:
-  FEATURE_BRANCH_NAME: $(echo ${{ github.head_ref || github.ref_name }} | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
+  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
   NPM_QAT_SCRIPT: "qat:debug"
 
 permissions:
@@ -45,7 +45,7 @@ jobs:
       - name: Check QAT Script and Feature Branch
         run: |
           has_qat=`jq -r '.scripts|to_entries[]|select(.key=="${{ env.NPM_QAT_SCRIPT }}")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
-          if [ $has_qat -eq 1 ] && [ `echo "${{ env.FEATURE_BRANCH_NAME }}" | grep feature\/ | wc -l` -eq 1  ]; then
+          if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
             echo "RUN_QAT=true" >> $GITHUB_ENV
           else
             echo "RUN_QAT=false" >> $GITHUB_ENV
