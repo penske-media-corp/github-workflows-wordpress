@@ -2,11 +2,26 @@ name: QAT
 
 on:
   workflow_call:
+    inputs:
+      SITE_URL:
+        default: ''
+        description: 'Site URL'
+        required: false
+        type: string
+      THEME_NAME:
+        default: ''
+        description: 'WP Theme'
+        required: false
+        type: string
+
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
       GITHUB_READ_ONLY_SSH_KEY:
         required: true
+
+env:
+  FEATURE_NAME: $(echo ${{ github.head_ref || github.ref_name }} | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
 
 permissions:
   contents: read
@@ -14,12 +29,57 @@ permissions:
 jobs:
   playwright:
     name: Playwright
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 90
-    if: false
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
-      - name: Run Playwright tests
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          nodejs: 1
+
+      - name: Check QAT script
         run: |
-          echo "Not implemented"
-          exit 0
+          has_qat=`jq -r '.scripts|to_entries[]|select(.key=="qat")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
+          if [ $has_qat -eq 1 ]; then
+            echo "HAS_QAT=true" >> $GITHUB_ENV
+          else
+            echo "HAS_QAT=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check PMCQA
+        if: ${{ env.HAS_QAT == 'true' }}
+        timeout-minutes: 10
+        run: |
+          if [ ${{ inputs.THEME_NAME }} = '' || ${{ inputs.SITE_URL }} ]; then
+            echo "THEME_NAME or SITE_URL is not set";
+            exit 1;
+          fi
+          hash_url="https://${{ env.FEATURE_NAME }}.${{ inputs.SITE_URL }}/wp-content-vipgo-sites/${{ env.FEATURE_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
+          hash=`curl --insecure $hash_url`
+          until [[ $hash == ${{ github.sha }} ]]; do
+              echo -n "Waiting for Jenkins Deployment ... \n"
+              hash=`curl --insecure $hash_url`
+              sleep 5
+          done
+
+      - name: Install Playwright
+        if: ${{ env.HAS_QAT == 'true' }}
+        run: |
+          . "$NVM_DIR/nvm.sh"
+
+          nvm install
+          nvm use
+
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        if: ${{ env.HAS_QAT == 'true' }}
+        run: |
+          export ENVIRONMENT_URL="https://${{ env.FEATURE_NAME }}.${{ inputs.SITE_URL }}"
+          echo ${{ env.ENVIRONMENT_URL }}
+          # npm run qat:debug
