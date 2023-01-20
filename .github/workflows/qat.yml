@@ -75,10 +75,12 @@ jobs:
           npm ci
           npx playwright install --with-deps
 
+          sudo apt install xvfb
+
       - name: Run Playwright tests
         if: ${{ env.RUN_QAT == 'true' }}
         run: |
           if [ "${{ inputs.SITE_URL }}" != '' ]; then
             export ENVIRONMENT_URL="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.SITE_URL }}"
           fi
-          npm run ${{ env.NPM_QAT_SCRIPT }}
+          xvfb-run npm run ${{ env.NPM_QAT_SCRIPT }}
