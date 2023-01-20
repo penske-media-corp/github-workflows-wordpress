@@ -20,10 +20,6 @@ on:
       GITHUB_READ_ONLY_SSH_KEY:
         required: true
 
-env:
-  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
-  NPM_QAT_SCRIPT: "qat:debug"
-
 permissions:
   contents: read
 
@@ -32,6 +28,9 @@ jobs:
     name: Playwright
     runs-on: ubuntu-20.04
     timeout-minutes: 90
+    env:
+      FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
+      NPM_QAT_SCRIPT: "qat:debug"
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
