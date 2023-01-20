@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 90
     env:
       FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
-      NPM_QAT_SCRIPT: "qat:debug"
+      NPM_QAT_SCRIPT: "qat"
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     steps:
@@ -55,6 +55,8 @@ jobs:
         if: ${{ env.RUN_QAT == 'true' }} && ${{ inputs.THEME_NAME  != '' }} && ${{ inputs.SITE_URL != '' }}
         timeout-minutes: 10
         run: |
+          # `version-hash` is created by jenkins script when a branch is pushed
+          # https://github.com/penske-media-corp/pmc-jenkins-scripts/blob/8ee0244a8485b61cfa6d3f9af00f7e6a55ddb042/bin/push-pmcqa-repo.sh#L36-L38
           hash_url="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.SITE_URL }}/wp-content-vipgo-sites/${{ env.FEATURE_BRANCH_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
           echo "HASH_URL: $hash_url"
           hash=`curl --insecure $hash_url`
@@ -70,10 +72,9 @@ jobs:
           . "$NVM_DIR/nvm.sh"
 
           nvm install
-          nvm use
 
+          # Playwright needs to be added in package.json as dependency
           npm ci
-          npx playwright install --with-deps
 
       - name: Run Playwright tests
         if: ${{ env.RUN_QAT == 'true' }}
@@ -81,4 +82,4 @@ jobs:
           if [ "${{ inputs.SITE_URL }}" != '' ]; then
             export ENVIRONMENT_URL="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.SITE_URL }}"
           fi
-          xvfb-run npm run ${{ env.NPM_QAT_SCRIPT }}
+          npm run ${{ env.NPM_QAT_SCRIPT }}
