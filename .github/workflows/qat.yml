@@ -75,8 +75,6 @@ jobs:
           npm ci
           npx playwright install --with-deps
 
-          sudo apt install xvfb
-
       - name: Run Playwright tests
         if: ${{ env.RUN_QAT == 'true' }}
         run: |
