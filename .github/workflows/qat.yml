@@ -52,7 +52,7 @@ jobs:
           fi
 
       - name: Check PMCQA
-        if: ${{ env.RUN_QAT == 'true' }} && ${{ inputs.THEME_NAME  != '' }} && ${{ inputs.SITE_URL != '' }}
+        if: ${{ env.RUN_QAT == 'true' && inputs.THEME_NAME  != '' && inputs.SITE_URL != '' }}
         timeout-minutes: 10
         run: |
           # `version-hash` is created by jenkins script when a branch is pushed
