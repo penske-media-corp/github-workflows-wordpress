@@ -55,6 +55,7 @@ jobs:
         if: ${{ env.RUN_QAT == 'true' }} && ${{ inputs.THEME_NAME  != '' }} && ${{ inputs.SITE_URL != '' }}
         timeout-minutes: 10
         run: |
+          echo "RUN_QAT ${{ env.RUN_QAT }} inputs: ${{ inputs.THEME_NAME  }} - ${{ inputs.SITE_URL != '' }}"
           # `version-hash` is created by jenkins script when a branch is pushed
           # https://github.com/penske-media-corp/pmc-jenkins-scripts/blob/8ee0244a8485b61cfa6d3f9af00f7e6a55ddb042/bin/push-pmcqa-repo.sh#L36-L38
           hash_url="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.SITE_URL }}/wp-content-vipgo-sites/${{ env.FEATURE_BRANCH_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
