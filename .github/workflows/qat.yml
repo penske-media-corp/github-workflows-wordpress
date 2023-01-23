@@ -60,7 +60,7 @@ jobs:
           hash_url="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.SITE_URL }}/wp-content-vipgo-sites/${{ env.FEATURE_BRANCH_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
           echo "HASH_URL: $hash_url"
           hash=`curl --insecure $hash_url`
-          until [[ $hash == ${{ github.event.pull_request.head.sha }} ]] || [[ $hash == ${{ github.sha }} ]]; do
+          until [[ $hash == ${{ github.event.pull_request.head.sha }} ]]; do
               echo -n "Waiting for Jenkins Deployment ... \n"
               hash=`curl --insecure $hash_url`
               sleep 5
