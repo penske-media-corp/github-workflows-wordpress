@@ -23,6 +23,7 @@ on:
 permissions:
   contents: read
 
+
 jobs:
   playwright:
     name: Playwright
