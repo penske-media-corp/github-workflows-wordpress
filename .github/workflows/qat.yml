@@ -26,7 +26,8 @@ permissions:
 jobs:
   playwright:
     name: Playwright
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-latest-4-cores
     timeout-minutes: 90
     env:
       FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
