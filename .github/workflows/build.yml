@@ -18,6 +18,12 @@ jobs:
     timeout-minutes: 90
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || '' }}
+
       - name: Build static assets
         run: |
           cwd=$(pwd)
