@@ -18,14 +18,19 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
         with:
-          fetch-depth: 1
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || '' }}
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          git_checkout_fetch_depth: 1
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          nodejs: true
+          vip_theme: false
 
       - name: Build static assets
         run: |
+          . "$NVM_DIR/nvm.sh"
+
           cwd=$(pwd)
 
           # Find all the package.json files not in node_modules and store as an array
