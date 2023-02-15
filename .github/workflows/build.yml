@@ -16,10 +16,43 @@ jobs:
     name: Assets
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: false
 
     steps:
       - name: Build static assets
         run: |
-          echo "Not implemented"
-          exit 0
+          cwd=$(pwd)
+
+          # Find all the package.json files not in node_modules and store as an array
+          packagejsons=()
+          while IFS=  read -r -d $'\0'; do
+            packagejsons+=("$REPLY")
+          done < <(find . -maxdepth 3 -type d -name "*node_modules*" -prune -o -name "package.json" -print0)
+
+          set -e
+          for i in "${packagejsons[@]}"
+          do
+            pushd $( dirname $i )
+            if [[ -f "package.json" ]]; then
+              pwd
+
+              if [[ ! -f ".nvmrc" ]]; then
+                echo "WARNING: No .nvmrc found for $PWD"
+                exit 1
+              fi
+
+              nvm install
+              if [[ $( npm run | grep 'build' ) ]]; then
+                npm config set unsafe-perm true
+                npm config set user 0
+                npm ci
+                npm run build || { echo 'Build Failed'; exit 1; }
+              fi
+            fi
+            popd
+          done
+
+          # Return to the original directory
+          cd $cwd;
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
