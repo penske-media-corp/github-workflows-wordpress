@@ -47,6 +47,12 @@ jobs:
             continue_on_error: false
             job_label_php: 'current'
             job_label_wordpress: 'latest'
+          - php: '8.0'
+            wordpress: '6.2.0'
+            check_code_coverage: true
+            continue_on_error: true
+            job_label_php: 'current'
+            job_label_wordpress: '6.2-beta'
 
     steps:
       - name: Prepare environment
