@@ -34,7 +34,7 @@ jobs:
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-qat-playwright
       cancel-in-progress: true
 
     steps:

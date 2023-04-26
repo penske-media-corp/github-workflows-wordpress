@@ -32,7 +32,7 @@ jobs:
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-unit-test-phpunit-${{ matrix.job_label_php }}-${{ matrix.job_label_wordpress }}
       cancel-in-progress: true
 
     services:
@@ -116,7 +116,7 @@ jobs:
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-unit-test-jest
       cancel-in-progress: true
 
     steps:
@@ -143,7 +143,7 @@ jobs:
     needs: [ phpunit, jest ]
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-unit-test-code-quality
       cancel-in-progress: true
 
     steps:

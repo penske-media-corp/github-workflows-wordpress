@@ -19,7 +19,7 @@ jobs:
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-coding-standards-phpcs
       cancel-in-progress: true
 
     steps:

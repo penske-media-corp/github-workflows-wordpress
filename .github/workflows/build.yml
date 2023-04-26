@@ -19,7 +19,7 @@ jobs:
     if: false
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-build-assets
       cancel-in-progress: true
 
     steps:

@@ -28,7 +28,7 @@ jobs:
     if: false
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}
+      group: ${{ github.ref_name || github.run_id }}-bitbucket-sync-push
       cancel-in-progress: true
 
     steps:
@@ -71,7 +71,11 @@ jobs:
     name: Delete from Bitbucket
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: ${{ github.event_name == 'delete' && github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    if: false
+
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-bitbucket-sync-delete
+      cancel-in-progress: true
 
     steps:
       - name: Add SSH key
