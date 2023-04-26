@@ -18,6 +18,10 @@ jobs:
     timeout-minutes: 90
     if: false
 
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-build-assets
+      cancel-in-progress: true
+
     steps:
       - name: Build static assets
         run: |

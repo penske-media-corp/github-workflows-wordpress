@@ -31,6 +31,10 @@ jobs:
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-unit-test-phpunit-${{ matrix.job_label_php }}-${{ matrix.job_label_wordpress }}
+      cancel-in-progress: true
+
     services:
       memcached:
         image: memcached:alpine
@@ -111,6 +115,10 @@ jobs:
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-unit-test-jest
+      cancel-in-progress: true
+
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@main
@@ -133,6 +141,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     needs: [ phpunit, jest ]
+
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-unit-test-code-quality
+      cancel-in-progress: true
 
     steps:
       - name: Clone repository

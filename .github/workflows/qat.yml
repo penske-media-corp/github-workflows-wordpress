@@ -33,6 +33,10 @@ jobs:
       NPM_QAT_SCRIPT: "qat"
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-qat-playwright
+      cancel-in-progress: true
+
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@main
