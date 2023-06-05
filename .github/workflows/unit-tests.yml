@@ -46,7 +46,7 @@ jobs:
       matrix:
         include:
           - php: '8.0'
-            wordpress: '6.0.3'
+            wordpress: '6.2.2'
             check_code_coverage: true
             continue_on_error: false
             job_label_php: 'current'
