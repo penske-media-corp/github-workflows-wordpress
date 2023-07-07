@@ -54,12 +54,12 @@ jobs:
       - name: Set outputs
         id: set-outputs
         run: |
-          echo "::set-output name=source_branch::${{ github.ref_name }}"
+          echo "source_branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
           if [[ "" == "${{ inputs.destination_branch }}" ]]; then
-            echo "::set-output name=destination_branch::${{ github.ref_name }}"
+            echo "destination_branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=destination_branch::${{ inputs.destination_branch }}"
+            echo "destination_branch=${{ inputs.destination_branch }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Push to Bitbucket
@@ -101,9 +101,9 @@ jobs:
         id: set-outputs
         run: |
           if [[ "" == "${{ inputs.destination_branch }}" ]]; then
-            echo "::set-output name=destination_branch::${{ github.ref_name }}"
+            echo "destination_branch=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=destination_branch::${{ inputs.destination_branch }}"
+            echo "destination_branch=${{ inputs.destination_branch }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Delete from Bitbucket
