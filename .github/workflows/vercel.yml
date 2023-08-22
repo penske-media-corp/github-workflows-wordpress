@@ -1,0 +1,49 @@
+name: Vercel
+
+on:
+  workflow_call:
+    inputs:
+      VERCEL_PROJECT_ID:
+        required: true
+        type: string
+      VERCEL_PROJECT_NAME:
+        required: true
+        type: string
+      WORKING_DIRECTORY:
+        required: true
+        type: string
+    secrets:
+      VERCEL_ORG_ID:
+        required: true
+      VERCEL_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+  # To allow action to post to PR.
+  pull-requests: write
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: vercel-${{ inputs.VERCEL_PROJECT_ID }}-${{ github.ref_name || github.run_id }}
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v3
+        name: Check out repository
+      - uses: amondnet/vercel-action@v25
+        name: Build & Deploy
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-comment: true
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-args: ${{ github.ref_name == 'main' && '--prod' || '' }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ inputs.VERCEL_PROJECT_ID }}
+          vercel-project-name: ${{ inputs.VERCEL_PROJECT_NAME }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          working-directory: ${{ inputs.WORKING_DIRECTORY }}
