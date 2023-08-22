@@ -24,12 +24,12 @@ permissions:
   pull-requests: write
 
 jobs:
-  deploy-nova:
+  deploy:
     name: Deploy
     runs-on: ubuntu-latest
 
     concurrency:
-      group: vercel-nova-${{ github.ref_name || github.run_id }}
+      group: vercel-${{ inputs.VERCEL_PROJECT_ID }}-${{ github.ref_name || github.run_id }}
       cancel-in-progress: true
 
     steps:
