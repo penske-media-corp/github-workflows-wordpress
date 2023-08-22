@@ -39,7 +39,7 @@ jobs:
         name: Build & Deploy
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-comment: true
+          github-comment: ${{ github.ref_name == 'main' && 'false' || 'true' }}
           scope: ${{ secrets.VERCEL_ORG_ID }}
           vercel-args: ${{ github.ref_name == 'main' && '--prod' || '' }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
