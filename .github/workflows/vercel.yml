@@ -52,7 +52,7 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          DEPLOY_URL=$(npx vercel@32.1.0 --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }} | grep -Eo "https://${{ inputs.VERCEL_PROJECT_NAME }}-([^-])-penske-media-corp.vercel.app" )
+          DEPLOY_URL=$(npx vercel@32.1.0 --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }} | grep -Eo "https://${{ inputs.VERCEL_PROJECT_NAME }}-([^-]+)-penske-media-corp.vercel.app" )
 
           echo "$DEPLOY_URL"
 
