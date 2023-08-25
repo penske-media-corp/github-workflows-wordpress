@@ -48,10 +48,13 @@ jobs:
           vercel-project-name: ${{ inputs.VERCEL_PROJECT_NAME }}
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           working-directory: ${{ inputs.WORKING_DIRECTORY }}
-      - name: Build Errors
+      - name: Retrieve Build Errors
         if: failure()
+        shelL: bash
         run: |
-          echo "Build failed"
-          echo ${{ steps.build-deploy.outputs.preview-url }}
-          echo ${{ steps.build-deploy.outputs.preview-name }}
+          DEPLOYS=$(npx vercel --no-color --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }})
+          DEPLOY_URL=$(echo $DEPLOYS | cut -d '\n' -f 1)
+
+          npx vercel --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} logs --raw $DEPLOY_URL
+
           exit 1
