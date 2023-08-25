@@ -6,7 +6,6 @@ on:
       VERCEL_ORG_SlUG:
         required: true
         type: string
-        default: "penske-media-corp"
       VERCEL_PROJECT_ID:
         required: true
         type: string
