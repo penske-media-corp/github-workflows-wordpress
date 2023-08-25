@@ -37,6 +37,7 @@ jobs:
         name: Check out repository
       - uses: amondnet/vercel-action@v25
         name: Build & Deploy
+        id: build-deploy
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-comment: ${{ github.ref_name == 'main' && 'false' || 'true' }}
@@ -47,3 +48,10 @@ jobs:
           vercel-project-name: ${{ inputs.VERCEL_PROJECT_NAME }}
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           working-directory: ${{ inputs.WORKING_DIRECTORY }}
+      - name: Build Errors
+        if: failure()
+        run: |
+          echo "Build failed"
+          echo ${{ steps.build-deploy.outputs.preview-url }}
+          echo ${{ steps.build-deploy.outputs.preview-name }}
+          exit 1
