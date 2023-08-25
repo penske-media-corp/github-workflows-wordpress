@@ -38,13 +38,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         name: Check out repository
+      - name: Set arguments
+        id: set-action-args
+        shell: bash
+        run: |
+          if [[ "refs/heads/main" == "${GITHUB_REF}" ]]; then
+            echo "github-comment=false" >> $GITHUB_OUTPUT
+            echo "vercel-args=--prod" >> $GITHUB_OUTPUT
+          else
+            echo "github-comment=true" >> $GITHUB_OUTPUT
+            echo "vercel-args=" >> $GITHUB_OUTPUT
+          fi
       - uses: amondnet/vercel-action@v25
         name: Build & Deploy
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-comment: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
+          github-comment: ${{ steps.set-action-args.outputs.github-comment }}
           scope: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+          vercel-args: ${{ steps.set-action-args.outputs.vercel-args }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ inputs.VERCEL_PROJECT_ID }}
           vercel-project-name: ${{ inputs.VERCEL_PROJECT_NAME }}
