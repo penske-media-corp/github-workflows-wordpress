@@ -40,7 +40,6 @@ jobs:
         name: Check out repository
       - uses: amondnet/vercel-action@v25
         name: Build & Deploy
-        id: build-deploy
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-comment: ${{ github.ref == 'refs/heads/main' && 'false' || 'true' }}
