@@ -57,5 +57,4 @@ jobs:
         run: |
           VERCEL_CMD="npx vercel@32.1.0 --no-color --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }}"
           DEPLOY_URL=$($VERCEL_CMD ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }} | grep -Eo "https://${{ inputs.VERCEL_PROJECT_NAME }}-([^-]+)-${{ inputs.VERCEL_ORG_SlUG }}.vercel.app" )
-
           $VERCEL_CMD logs --output raw $DEPLOY_URL
