@@ -47,7 +47,7 @@ jobs:
             echo "vercel-args=--prod" >> $GITHUB_OUTPUT
           else
             echo "github-comment=true" >> $GITHUB_OUTPUT
-            echo "vercel-args=" >> $GITHUB_OUTPUT
+            echo "vercel-args=--debug" >> $GITHUB_OUTPUT
           fi
       - uses: amondnet/vercel-action@v25
         name: Build & Deploy
