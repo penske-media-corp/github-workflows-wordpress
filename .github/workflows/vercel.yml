@@ -53,6 +53,6 @@ jobs:
         shell: bash
         run: |
           npx vercel@25.1.0 --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }} | read -r DEPLOY_URL
-          npx vercel@25.1.0 --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} logs --raw $DEPLOY_URL
+          npx vercel@25.1.0 --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} logs --output raw $DEPLOY_URL
 
           exit 1
