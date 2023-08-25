@@ -50,7 +50,7 @@ jobs:
           working-directory: ${{ inputs.WORKING_DIRECTORY }}
       - name: Retrieve Build Errors
         if: failure()
-        shelL: bash
+        shell: bash
         run: |
           DEPLOYS=$(npx vercel --no-color --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }})
           DEPLOY_URL=$(echo $DEPLOYS | cut -d '\n' -f 1)
