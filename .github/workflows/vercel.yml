@@ -3,6 +3,9 @@ name: Vercel
 on:
   workflow_call:
     inputs:
+      VERCEL_ORG_SlUG:
+        required: true
+        type: string
       VERCEL_PROJECT_ID:
         required: true
         type: string
@@ -35,15 +38,35 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         name: Check out repository
+      - name: Set arguments
+        id: set-action-args
+        shell: bash
+        run: |
+          echo "${GITHUB_REF}"
+
+          if [[ "refs/heads/main" == "${GITHUB_REF}" ]]; then
+            echo "github-comment=false" >> $GITHUB_OUTPUT
+            echo "vercel-args=--prod" >> $GITHUB_OUTPUT
+          else
+            echo "github-comment=true" >> $GITHUB_OUTPUT
+            echo "vercel-args=" >> $GITHUB_OUTPUT
+          fi
       - uses: amondnet/vercel-action@v25
         name: Build & Deploy
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-comment: ${{ github.ref_name == 'main' && 'false' || 'true' }}
+          github-comment: ${{ steps.set-action-args.outputs.github-comment }}
           scope: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-args: ${{ github.ref_name == 'main' && '--prod' || '' }}
+          vercel-args: ${{ steps.set-action-args.outputs.vercel-args }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ inputs.VERCEL_PROJECT_ID }}
           vercel-project-name: ${{ inputs.VERCEL_PROJECT_NAME }}
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           working-directory: ${{ inputs.WORKING_DIRECTORY }}
+      - name: Retrieve Build Log
+        if: failure()
+        shell: bash
+        run: |
+          VERCEL_CMD="npx vercel@32.1.0 --no-color --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }}"
+          DEPLOY_URL=$($VERCEL_CMD ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }} | grep -Eo "https://${{ inputs.VERCEL_PROJECT_NAME }}-([^-]+)-${{ inputs.VERCEL_ORG_SlUG }}.vercel.app" )
+          $VERCEL_CMD logs --output raw $DEPLOY_URL
