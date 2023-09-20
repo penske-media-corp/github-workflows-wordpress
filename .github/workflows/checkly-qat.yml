@@ -48,7 +48,7 @@ jobs:
         run: echo "CHECKLY_TEST_REPO_BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
       - uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version: 16
       - name: Restore or cache node_modules
         id: cache-node-modules
         uses: actions/cache@v3
