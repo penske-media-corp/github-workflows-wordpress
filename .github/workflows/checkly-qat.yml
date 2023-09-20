@@ -61,6 +61,9 @@ jobs:
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
+      - name: Checkly Login # login to checkly using the API_KEY and ACCOUNT_ID
+        id: login
+        run: npx checkly login --apiKey=${{ env.CHECKLY_API_KEY }} --accountId=${{ env.CHECKLY_ACCOUNT_ID }}
       - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
         id: run-checks
         run: npx checkly test -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} --reporter=github --record
