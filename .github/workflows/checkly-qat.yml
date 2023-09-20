@@ -34,9 +34,6 @@ jobs:
     name: Checkly Run and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
-      NPM_QAT_SCRIPT: "qat"
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
