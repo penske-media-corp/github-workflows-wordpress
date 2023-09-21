@@ -35,12 +35,6 @@ jobs:
       group: ${{ github.ref_name || github.run_id }}-unit-test-phpunit-${{ matrix.job_label_php }}-${{ matrix.job_label_wordpress }}
       cancel-in-progress: true
 
-    services:
-      memcached:
-        image: memcached:alpine
-        ports:
-          - 11211:11211
-
     strategy:
       fail-fast: false
       matrix:
