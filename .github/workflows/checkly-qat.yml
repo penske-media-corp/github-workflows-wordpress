@@ -46,20 +46,20 @@ jobs:
           fetch-depth: 0
       - name: Set branch name # workaround to detect branch name in "workflow_call" actions
         run: echo "CHECKLY_TEST_REPO_BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-      # - uses: actions/setup-node@v3
-      #   with:
-      #     node-version: 16
-      # - name: Restore or cache node_modules
-      #   id: cache-node-modules
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: node_modules
-      #     key: node-modules-${{ hashFiles('package-lock.json') }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Restore or cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
       # - name: Debug
       #   run: ls
-      # - name: Install dependencies
-      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      #   run: npm ci
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
       # - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
       #   id: run-checks
       #   # run: npx checkly test ./tests/qat/*.spec.js -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} --reporter=github --record
