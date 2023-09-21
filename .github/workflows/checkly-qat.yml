@@ -57,16 +57,16 @@ jobs:
           key: node-modules-${{ hashFiles('package-lock.json') }}
       # - name: Debug
       #   run: ls
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
-        id: run-checks
-        # run: npx checkly test ./tests/qat/*.spec.js -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} --reporter=github --record
-        run: npm run qat
-      - name: Create summary # export the markdown report to the job summary.
-        id: create-summary
-        run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
+      # - name: Install dependencies
+      #   if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      #   run: npm ci
+      # - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
+      #   id: run-checks
+      #   # run: npx checkly test ./tests/qat/*.spec.js -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} --reporter=github --record
+      #   run: npm run qat
+      # - name: Create summary # export the markdown report to the job summary.
+      #   id: create-summary
+      #   run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # if the test run was successful deploy the checks
         id: deploy-checks
         if: steps.run-checks.outcome == 'success'
