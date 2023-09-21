@@ -46,15 +46,15 @@ jobs:
           fetch-depth: 0
       - name: Set branch name # workaround to detect branch name in "workflow_call" actions
         run: echo "CHECKLY_TEST_REPO_BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: Restore or cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package-lock.json') }}
+      # - uses: actions/setup-node@v3
+      #   with:
+      #     node-version: 16
+      # - name: Restore or cache node_modules
+      #   id: cache-node-modules
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: node_modules
+      #     key: node-modules-${{ hashFiles('package-lock.json') }}
       # - name: Debug
       #   run: ls
       # - name: Install dependencies
@@ -69,5 +69,5 @@ jobs:
       #   run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # if the test run was successful deploy the checks
         id: deploy-checks
-        if: steps.run-checks.outcome == 'success'
+        # if: steps.run-checks.outcome == 'success'
         run: npx checkly deploy --force
