@@ -32,7 +32,7 @@ env:
   CHECKLY_TEST_ENVIRONMENT: ${{ inputs.QA_SITE_DOMAIN }}
   CHECKLY_REPO_BRANCH: ${{ github.head_ref }}
   CHECKLY_REPO_COMMIT_OWNER: ${{ github.actor }}
-  CHECKLY_REPO_SHA: ${{ github.job_workflow_sha }}
+  CHECKLY_REPO_SHA: ${{ github.sha }}
 jobs:
   checkly-deploy:
     name: Checkly Run and Deploy
