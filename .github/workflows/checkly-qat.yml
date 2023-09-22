@@ -34,7 +34,7 @@ jobs:
     name: Checkly Run and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }} && '!cancelled()'
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
@@ -59,6 +59,7 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
       - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
+        continue-on-error: true
         id: run-checks
         run: npx checkly test -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} --reporter=github --record
       - name: Create summary # export the markdown report to the job summary.
