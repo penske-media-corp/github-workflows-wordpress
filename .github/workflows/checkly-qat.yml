@@ -29,6 +29,7 @@ env:
   CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
   CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
   ENVIRONMENT_URL: ${{ inputs.QA_SITE_DOMAIN }}
+  CHECKLY_REPO_BRANCH: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
 jobs:
   checkly-deploy:
     name: Checkly Run and Deploy
@@ -44,8 +45,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Set branch name
-        run: echo "CHECKLY_REPO_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
       - uses: actions/setup-node@v3
         with:
           node-version: 16
