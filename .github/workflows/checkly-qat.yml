@@ -25,6 +25,8 @@ permissions:
 
 # Set the necessary credentials and export variables we can use to instrument our test run. Use the ENVIRONMENT_URL
 # to run your checks against staging, preview or production.
+# See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
+# more details on Checkly environment variables.
 env:
   CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
   CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
@@ -47,28 +49,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Check out the full git history
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
-      - name: Restore or cache node_modules
+          node-version: 16 # Checkly CLI requires Node.js 16 or higher.
+      - name: Restore or cache node_modules # Restore node_modules cache if available
         id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+      - name: Install dependencies # Install NPM dependencies if cache miss
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
-      - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
-        # continue-on-error: true
+      - name: Run checks # Run Checkly checks and record test session
         id: run-checks
         run: npx checkly test -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
-      - name: Create summary # export the markdown report to the job summary.
-        if: always()
+      - name: Create summary # Export Checkly report to GitHub job summary
+        if: always() # Always generate report even if tests fail
         id: create-summary
         run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
-      - name: Deploy checks
-        if: always()
+      - name: Deploy checks # Deploy checks to Checkly for debugging
+        if: always() # Deploy regardless of test result
         id: deploy-checks
         run: npx checkly deploy --force
