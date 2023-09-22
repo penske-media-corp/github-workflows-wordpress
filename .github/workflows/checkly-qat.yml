@@ -44,8 +44,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Set branch name # workaround to detect branch name in "workflow_call" actions
-        run: echo "CHECKLY_TEST_REPO_BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+      - name: Set branch name
+        run: echo "CHECKLY_REPO_BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
       - uses: actions/setup-node@v3
         with:
           node-version: 16
@@ -66,8 +66,7 @@ jobs:
         if: always()
         id: create-summary
         run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
-      - name: Deploy checks # if the test run was successful deploy the checks
+      - name: Deploy checks
         if: always()
         id: deploy-checks
-        # if: steps.run-checks.outcome == 'success'
         run: npx checkly deploy --force
