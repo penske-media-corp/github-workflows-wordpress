@@ -6,12 +6,12 @@ on:
       QA_SITE_DOMAIN:
         default: ''
         description: 'QA Site Domain'
-        required: false
+        required: true
         type: string
       THEME_NAME:
         default: ''
         description: 'WP Theme'
-        required: false
+        required: true
         type: string
 
     secrets:
