@@ -34,7 +34,7 @@ jobs:
     name: Checkly Run and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }} && '!cancelled()'
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
