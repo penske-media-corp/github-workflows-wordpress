@@ -59,13 +59,15 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci
       - name: Run checks # run the checks passing in the ENVIRONMENT_URL and recording a test session.
-        continue-on-error: true
+        # continue-on-error: true
         id: run-checks
         run: npx checkly test -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} --reporter=github --record
       - name: Create summary # export the markdown report to the job summary.
+        if: always()
         id: create-summary
         run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # if the test run was successful deploy the checks
+        if: always()
         id: deploy-checks
         # if: steps.run-checks.outcome == 'success'
         run: npx checkly deploy --force
