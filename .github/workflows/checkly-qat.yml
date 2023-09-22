@@ -45,7 +45,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set branch name
-        run: echo "CHECKLY_REPO_BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+        run: echo "CHECKLY_REPO_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
       - uses: actions/setup-node@v3
         with:
           node-version: 16
