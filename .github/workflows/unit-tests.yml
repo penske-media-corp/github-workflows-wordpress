@@ -177,7 +177,7 @@ jobs:
 
       - name: Set Sonar variables
         run: |
-          echo "\n" >> "./sonar-project.properties"
+          echo "" >> "./sonar-project.properties"
 
           if [[ -d ./artifacts ]]; then
             ls -l ./artifacts
