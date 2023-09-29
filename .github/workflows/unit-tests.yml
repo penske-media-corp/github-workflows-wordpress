@@ -30,7 +30,6 @@ jobs:
 
     steps:
       - name: Determine runner size
-        id: determine-runner-size
         run: |
           if [[ "$GITHUB_OUTPUT" == "penske-media-corp/pmc-plugins" ]]; then
             echo "runs-on=ubuntu-latest-4-cores" >> $GITHUB_OUTPUT
@@ -41,7 +40,7 @@ jobs:
 
   phpunit:
     name: "PHP: ${{ matrix.job_label_php }}, WP: ${{ matrix.job_label_wordpress }}"
-    runs-on: ${{ steps.determine-runner-size.outputs.runs-on }}
+    runs-on: ${{ needs.determine-runner-size.outputs.runs-on }}
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
     needs: [ determine-runner-size ]
@@ -128,7 +127,7 @@ jobs:
 
   jest:
     name: JS
-    runs-on: ${{ steps.determine-runner-size.outputs.runs-on }}
+    runs-on: ${{ needs.determine-runner-size.outputs.runs-on }}
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
     needs: [ determine-runner-size ]
