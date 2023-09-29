@@ -27,11 +27,10 @@ env:
 jobs:
   determine-runner-size:
     name: Determine runner size
-    id: determine-runner-size
     runs-on: ubuntu-latest
 
-    output:
-      runs-on: ${{ steps.set-runner.output.runs-on }}
+    outputs:
+      runs-on: ${{ steps.set-runner.outputs.runs-on }}
 
     steps:
       - name: Set runner
