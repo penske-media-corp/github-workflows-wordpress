@@ -26,10 +26,16 @@ env:
 
 jobs:
   determine-runner-size:
+    name: Determine runner size
+    id: determine-runner-size
     runs-on: ubuntu-latest
 
+    output:
+      runs-on: ${{ steps.set-runner.output.runs-on }}
+
     steps:
-      - name: Determine runner size
+      - name: Set runner
+        id: set-runner
         run: |
           if [[ "$GITHUB_OUTPUT" == "penske-media-corp/pmc-plugins" ]]; then
             echo "runs-on=ubuntu-latest-4-cores" >> $GITHUB_OUTPUT
