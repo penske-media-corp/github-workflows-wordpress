@@ -25,11 +25,25 @@ env:
   THEMES_DIR: "${WP_CORE_DIR}/wp-content/themes"
 
 jobs:
+  determine-runner:
+    name: Determine runner size
+    id: determine-runner-size
+    runs-on: ubuntu-latest
+    run: |
+      if [[ "$GITHUB_OUTPUT" == "penske-media-corp/pmc-plugins" ]]; then
+        echo "runs-on=ubuntu-latest-4-cores" >> $GITHUB_OUTPUT
+      else
+        echo "runs-on=ubuntu-latest" >> $GITHUB_OUTPUT
+      fi
+    shell: bash
+
+
   phpunit:
     name: "PHP: ${{ matrix.job_label_php }}, WP: ${{ matrix.job_label_wordpress }}"
-    runs-on: ubuntu-latest
+    runs-on: ${{ steps.determine-runner-size.outputs.runs-on }}
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    needs: [ determine-runner-size ]
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-unit-test-phpunit-${{ matrix.job_label_php }}-${{ matrix.job_label_wordpress }}
@@ -113,9 +127,10 @@ jobs:
 
   jest:
     name: JS
-    runs-on: ubuntu-latest
+    runs-on: ${{ steps.determine-runner-size.outputs.runs-on }}
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    needs: [ determine-runner-size ]
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-unit-test-jest
