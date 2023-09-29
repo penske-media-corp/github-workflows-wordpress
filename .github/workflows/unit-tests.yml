@@ -36,9 +36,11 @@ jobs:
       - name: Set runner
         id: set-runner
         run: |
-          if [[ "$GITHUB_OUTPUT" == "penske-media-corp/pmc-plugins" ]]; then
+          if [[ "$GITHUB_REPOSITORY" == "penske-media-corp/pmc-plugins" ]]; then
+            echo "Using large runner"
             echo "runs-on=ubuntu-latest-4-cores" >> $GITHUB_OUTPUT
           else
+            echo "Using standard runner"
             echo "runs-on=ubuntu-latest" >> $GITHUB_OUTPUT
           fi
         shell: bash
