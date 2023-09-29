@@ -38,7 +38,7 @@ jobs:
         run: |
           if [[ "$GITHUB_REPOSITORY" == "penske-media-corp/pmc-plugins" ]]; then
             echo "Using large runner"
-            echo "runs-on=ubuntu-latest-4-cores" >> $GITHUB_OUTPUT
+            echo "runs-on=ubuntu-latest-8-cores" >> $GITHUB_OUTPUT
           else
             echo "Using standard runner"
             echo "runs-on=ubuntu-latest" >> $GITHUB_OUTPUT
