@@ -1,4 +1,4 @@
-name: 'QAT'
+name: QAT
 
 on:
   workflow_call:
