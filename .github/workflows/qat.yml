@@ -1,4 +1,4 @@
-name: 'Checkly QAT'
+name: 'QAT'
 
 on:
   workflow_call:
@@ -6,15 +6,19 @@ on:
       QA_SITE_DOMAIN:
         default: ''
         description: 'QA Site Domain'
-        required: true
+        required: false
         type: string
       THEME_NAME:
         default: ''
         description: 'WP Theme'
-        required: true
+        required: false
         type: string
 
     secrets:
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: false
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: false
       CHECKLY_API_KEY:
         required: true
       CHECKLY_ACCOUNT_ID:
