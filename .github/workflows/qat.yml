@@ -99,8 +99,6 @@ jobs:
         id: run-checks
         run: npx checkly test -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
       - name: Create summary # Export Checkly report to GitHub job summary
-        # Only run this step if the checkly-github-report.md exists
-        if: steps.run-checks.outputs.checkly-github-report != ''
         id: create-summary
         run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # Deploy checks to Checkly for debugging
