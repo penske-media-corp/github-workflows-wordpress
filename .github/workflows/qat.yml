@@ -53,7 +53,7 @@ jobs:
       cancel-in-progress: true
 
     outputs:
-      status: ${{ steps.file_exists.conclusion }}
+      status: ${{ steps.check_files.conclusion }}
 
     steps:
       - uses: actions/checkout@v3
