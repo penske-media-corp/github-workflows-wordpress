@@ -74,7 +74,7 @@ jobs:
       # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
       # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
       - name: Check PMCQA
-        if: ${{ inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' }}
+        if: ${{ inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' }} && steps.check_files.outputs.files_exists == 'true'
         timeout-minutes: 10
         run: |
           # `version-hash` is created by jenkins script when a branch is pushed
