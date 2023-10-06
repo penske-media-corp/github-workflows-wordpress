@@ -63,15 +63,6 @@ jobs:
             echo "Not a feature branch or checkly not found in devDependencies. Skipping Playwright tests."
             echo "RUN_QAT=false" >> $GITHUB_ENV
           fi
-
-        run: |
-          has_qat=`jq -r '.scripts|to_entries[]|select(.key=="${{ env.NPM_QAT_SCRIPT }}")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
-          if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
-            echo "RUN_QAT=true" >> $GITHUB_ENV
-          else
-            echo "Not a feature branch or qat script not found. Skipping Playwright tests."
-            echo "RUN_QAT=false" >> $GITHUB_ENV
-          fi
       # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
       # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
       - name: Check PMCQA
