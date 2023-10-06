@@ -58,10 +58,10 @@ jobs:
         run: |
           has_qat=`jq -r '.devDependencies | keys | .[] | select(. == "checkly")' package.json | wc -l`
           if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
-            echo "RUN_QAT=true" &gt;&gt; $GITHUB_ENV
+            echo "RUN_QAT=true" >> $GITHUB_ENV
           else
             echo "Not a feature branch or checkly not found in devDependencies. Skipping Playwright tests."
-            echo "RUN_QAT=false" &gt;&gt; $GITHUB_ENV
+            echo "RUN_QAT=false" >> $GITHUB_ENV
           fi
       # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
       # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
