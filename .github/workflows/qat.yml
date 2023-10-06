@@ -53,17 +53,17 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      # Enables Checkly tests only if the branch is a feature branch and the package.json contains the checkly devDependencies.
-      - name: Check QAT Script and Feature Branch
-        run: |
-          has_qat=`jq -r '.devDependencies|to_entries[]|select(.key=="checkly")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
-          echo "Has QAT = $has_qat"
-          if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
-            echo "RUN_QAT=true" >> $GITHUB_ENV
-          else
-            echo "Not a feature branch or checkly not found in devDependencies. Skipping Playwright tests."
-            echo "RUN_QAT=false" >> $GITHUB_ENV
-          fi
+      - name: Check for Checkly Config file existence
+        id: check_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "**/qat/checkly.config.ts"
+
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        # Only runs if all of the files exists
+        run: echo Checkly config found
+
       # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
       # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
       - name: Check PMCQA
