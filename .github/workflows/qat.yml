@@ -32,6 +32,8 @@ permissions:
 # See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
 # more details on Checkly environment variables.
 env:
+  NPM_QAT_SCRIPT: "qat"
+  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
   CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
   CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
   ENVIRONMENT_URL: ${{ inputs.QA_SITE_DOMAIN }}
@@ -51,6 +53,32 @@ jobs:
       cancel-in-progress: true
 
     steps:
+      # Enables Playwright tests only if the branch is a feature branch and the package.json contains the specified QAT script.
+      - name: Check QAT Script and Feature Branch
+        run: |
+          has_qat=`jq -r '.scripts|to_entries[]|select(.key=="${{ env.NPM_QAT_SCRIPT }}")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
+          if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
+            echo "RUN_QAT=true" >> $GITHUB_ENV
+          else
+            echo "Not a feature branch or qat script not found. Skipping Playwright tests."
+            echo "RUN_QAT=false" >> $GITHUB_ENV
+          fi
+      # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
+      # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
+      - name: Check PMCQA
+        if: ${{ env.RUN_QAT == 'true' && inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' }}
+        timeout-minutes: 10
+        run: |
+          # `version-hash` is created by jenkins script when a branch is pushed
+          # https://github.com/penske-media-corp/pmc-jenkins-scripts/blob/8ee0244a8485b61cfa6d3f9af00f7e6a55ddb042/bin/push-pmcqa-repo.sh#L36-L38
+          hash_url="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo-sites/${{ env.FEATURE_BRANCH_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
+          echo "HASH_URL: $hash_url"
+          hash=`curl --no-progress-meter --insecure $hash_url`
+          until [[ $hash == ${{ github.event.pull_request.head.sha }} ]]; do
+              echo -n "Waiting for Jenkins Deployment ... \n"
+              hash=`curl --no-progress-meter --insecure $hash_url`
+              sleep 5
+          done
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Check out the full git history
@@ -58,22 +86,26 @@ jobs:
         with:
           node-version: 16 # Checkly CLI requires Node.js 16 or higher.
       - name: Restore or cache node_modules # Restore node_modules cache if available
+        if: ${{ env.RUN_QAT == 'true' }}
         id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies # Install NPM dependencies if cache miss
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true' && env.RUN_QAT == 'true'
         run: npm ci
       - name: Run checks # Run Checkly checks and record test session
+        if: ${{ env.RUN_QAT == 'true' }}
         id: run-checks
-        run: npx checkly test -e ENVIRONMENT_URL=${{ env.ENVIRONMENT_URL }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
+        run: npx checkly test -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
       - name: Create summary # Export Checkly report to GitHub job summary
-        if: always() # Always generate report even if tests fail
+        # Only run this step if the checkly-github-report.md exists
+        if: steps.run-checks.outputs.checkly-github-report != ''
         id: create-summary
         run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # Deploy checks to Checkly for debugging
-        if: always() # Deploy regardless of test result
+        # Only run if the pull request is merging into the main branch
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         id: deploy-checks
         run: npx checkly deploy --force
