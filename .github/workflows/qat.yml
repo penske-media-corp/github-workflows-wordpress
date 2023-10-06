@@ -53,12 +53,13 @@ jobs:
       cancel-in-progress: true
 
     steps:
+      - name: What Dir am I in?
+        run: ls
       - name: Check for Checkly Config file existence
         id: check_files
         uses: andstor/file-existence-action@v2
         with:
           files: "checkly.config.ts"
-        run: ls
 
       - name: File exists
         if: steps.check_files.outputs.files_exists == 'true'
