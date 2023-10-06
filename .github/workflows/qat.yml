@@ -118,7 +118,7 @@ jobs:
         run: npm ci
       - name: Run checks # Run Checkly checks and record test session
         id: run-checks
-        run: npx checkly test --config="**/checkly.config.ts" -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
+        run: npx checkly test --config=./**/checkly.config.ts" -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
       - name: Create summary # Export Checkly report to GitHub job summary
         id: create-summary
         run: cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
