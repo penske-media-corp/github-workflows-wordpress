@@ -58,6 +58,7 @@ jobs:
         uses: andstor/file-existence-action@v2
         with:
           files: "checkly.config.ts"
+        run: ls
 
       - name: File exists
         if: steps.check_files.outputs.files_exists == 'true'
