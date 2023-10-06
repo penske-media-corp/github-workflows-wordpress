@@ -53,8 +53,9 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - name: What Dir am I in?
-        run: ls
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Check out the full git history
       - name: Check for Checkly Config file existence
         id: check_files
         uses: andstor/file-existence-action@v2
@@ -82,9 +83,6 @@ jobs:
               hash=`curl --no-progress-meter --insecure $hash_url`
               sleep 5
           done
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0 # Check out the full git history
       - uses: actions/setup-node@v3
         with:
           node-version: 16 # Checkly CLI requires Node.js 16 or higher.
