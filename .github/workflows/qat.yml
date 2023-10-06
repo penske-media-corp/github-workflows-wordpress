@@ -92,7 +92,7 @@ jobs:
     name: Checkly Run and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: needs.steps.file_exists.outputs.status == 'success'
+    if: steps.file_exists.outputs.status == 'success'
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
