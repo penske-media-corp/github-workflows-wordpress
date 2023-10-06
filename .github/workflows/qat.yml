@@ -92,7 +92,8 @@ jobs:
     name: Checkly Run and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: needs.check-qat.outputs.status == 'success'
+    # if the check_files step in the check-qat job doesn't fail
+    if: jobs.check-qat.steps.check_files.conclusion == 'success'
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
