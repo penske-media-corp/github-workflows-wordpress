@@ -57,6 +57,7 @@ jobs:
       - name: Check QAT Script and Feature Branch
         run: |
           has_qat=`jq -r '.devDependencies|to_entries[]|select(.key=="checkly")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
+          echo "Has QAT = $has_qat"
           if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
             echo "RUN_QAT=true" >> $GITHUB_ENV
           else
