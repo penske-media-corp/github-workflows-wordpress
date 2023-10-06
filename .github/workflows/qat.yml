@@ -48,9 +48,6 @@ jobs:
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
-    outputs:
-      status: ${{ steps.check_files.outputs.files_exists }}
-
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-qat-check
       cancel-in-progress: true
@@ -87,13 +84,17 @@ jobs:
               hash=`curl --no-progress-meter --insecure $hash_url`
               sleep 5
           done
+    outputs:
+      status: ${{ steps.check_files.outputs.files_exists }}
 
   checkly-deploy:
     name: Checkly Run and Deploy
     runs-on: ubuntu-latest
     timeout-minutes: 90
     # if the check_files step in the check-qat job doesn't fail
-    if: needs.check-qat.steps.check_files.conclusion == 'true'
+    needs:
+      - check-qat
+    if: needs.check-qat.outputs.status == 'true'
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
