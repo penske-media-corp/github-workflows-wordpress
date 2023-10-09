@@ -27,8 +27,6 @@ on:
 permissions:
   contents: read
 
-# Set the necessary credentials and export variables we can use to instrument our test run. Use the ENVIRONMENT_URL
-# to run your checks against staging, preview or production.
 # See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
 # more details on Checkly environment variables.
 env:
@@ -38,7 +36,6 @@ env:
   CHECKLY_REPO_COMMIT_OWNER: ${{ github.actor }}
   CHECKLY_REPO_SHA: ${{ github.sha }}
   CHECKLY_TEST_ENVIRONMENT: ${{ inputs.QA_SITE_DOMAIN }}
-  ENVIRONMENT_URL: ${{ inputs.QA_SITE_DOMAIN }}
   FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
   NPM_QAT_SCRIPT: "qat"
 
