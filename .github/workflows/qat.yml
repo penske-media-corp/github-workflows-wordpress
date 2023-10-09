@@ -119,7 +119,7 @@ jobs:
       - name: Run checks # Run Checkly checks and record test session
         id: run-checks
         run: |
-          npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --record
+          npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} -e CHECKLY_REPO_SHA=${{ env.CHECKLY_REPO_SHA }} --reporter=github --verbose --record
           cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # Deploy checks to Checkly for debugging
         # Only run if the pull request is merging into the main branch
