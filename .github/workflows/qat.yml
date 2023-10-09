@@ -32,15 +32,16 @@ permissions:
 # See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
 # more details on Checkly environment variables.
 env:
-  NPM_QAT_SCRIPT: "qat"
-  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
-  CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
   CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
-  ENVIRONMENT_URL: ${{ inputs.QA_SITE_DOMAIN }}
-  CHECKLY_TEST_ENVIRONMENT: ${{ inputs.QA_SITE_DOMAIN }}
+  CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
   CHECKLY_REPO_BRANCH: ${{ github.head_ref }}
   CHECKLY_REPO_COMMIT_OWNER: ${{ github.actor }}
   CHECKLY_REPO_SHA: ${{ github.sha }}
+  CHECKLY_TEST_ENVIRONMENT: ${{ inputs.QA_SITE_DOMAIN }}
+  ENVIRONMENT_URL: ${{ inputs.QA_SITE_DOMAIN }}
+  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
+  NPM_QAT_SCRIPT: "qat"
+
 jobs:
   check-qat:
     name: Check for QAT
