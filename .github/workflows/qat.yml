@@ -20,9 +20,9 @@ on:
       GITHUB_READ_ONLY_SSH_KEY:
         required: false
       CHECKLY_API_KEY:
-        required: true
+        required: false
       CHECKLY_ACCOUNT_ID:
-        required: true
+        required: false
 
 permissions:
   contents: read
