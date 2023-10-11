@@ -29,7 +29,7 @@ jobs:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
           github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
-          php_version: '8.0'
+          php_version: '8.2'
           phpcs: 1
 
       - name: Set text domain
