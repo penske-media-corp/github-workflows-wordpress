@@ -45,20 +45,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '8.0'
-            wordpress: '6.2.2'
+          - php: '8.2'
+            wordpress: '6.3.1'
             check_code_coverage: true
             continue_on_error: false
             job_label_php: 'current'
             job_label_wordpress: 'latest'
-
-            # Temporary WordPress 6.3 testing (PASE-1686)
-          - php: '8.0'
-            wordpress: '6.3'
-            check_code_coverage: false
-            continue_on_error: true # non-failing
-            job_label_php: 'current'
-            job_label_wordpress: '6.3'
 
     steps:
       - name: Prepare environment
