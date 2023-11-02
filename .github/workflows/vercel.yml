@@ -44,7 +44,7 @@ jobs:
         run: |
           echo "${GITHUB_REF}"
 
-          if [[ "refs/heads/main" == "${GITHUB_REF}" ]]; then
+          if [[ "refs/heads/main" == "${GITHUB_REF}" || "refs/heads/master" == "${GITHUB_REF}" ]]; then
             echo "github-comment=false" >> $GITHUB_OUTPUT
             echo "vercel-args=--prod" >> $GITHUB_OUTPUT
           else
