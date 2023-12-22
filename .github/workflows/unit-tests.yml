@@ -75,7 +75,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@feature/conditional-large-runner
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
@@ -126,7 +126,7 @@ jobs:
 
   jest:
     name: JS
-    runs-on: ${{ needs.determine-runner-size.outputs.runs-on }}
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
     needs: [ determine-runner-size ]
@@ -137,7 +137,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@feature/conditional-large-runner
+        uses: penske-media-corp/github-action-wordpress-test-setup@main
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
