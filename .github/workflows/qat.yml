@@ -16,47 +16,60 @@ on:
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
-        required: true
+        required: false
       GITHUB_READ_ONLY_SSH_KEY:
-        required: true
+        required: false
+      CHECKLY_API_KEY:
+        required: false
+      CHECKLY_ACCOUNT_ID:
+        required: false
 
 permissions:
   contents: read
 
+# See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
+# more details on Checkly environment variables.
+env:
+  CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+  CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+  CHECKLY_REPO_BRANCH: ${{ github.head_ref }}
+  CHECKLY_REPO_COMMIT_OWNER: ${{ github.actor }}
+  CHECKLY_REPO_SHA: ${{ github.sha }}
+  CHECKLY_TEST_ENVIRONMENT: ${{ inputs.QA_SITE_DOMAIN }}
+  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
+  NPM_QAT_SCRIPT: "qat"
+
 jobs:
-  playwright:
-    name: Playwright
+  check-qat:
+    name: Check for QAT
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    env:
-      FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
-      NPM_QAT_SCRIPT: "qat"
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
 
     concurrency:
-      group: ${{ github.ref_name || github.run_id }}-qat-playwright
+      group: ${{ github.ref_name || github.run_id }}-qat-check
       cancel-in-progress: true
 
     steps:
-      - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@main
+      - uses: actions/checkout@v3
         with:
-          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
-          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
-          nodejs: 1
+          fetch-depth: 0 # Check out the full git history
+      - name: Check for Checkly Config
+        id: check_files
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "**/checkly.config.ts"
 
-      - name: Check QAT Script and Feature Branch
-        run: |
-          has_qat=`jq -r '.scripts|to_entries[]|select(.key=="${{ env.NPM_QAT_SCRIPT }}")|.key' package.json 2>/dev/null | head -n 1 | wc -l`
-          if [ $has_qat -eq 1 ] && [[ "${{ github.head_ref || github.ref_name }}" =~ 'feature/' ]]; then
-            echo "RUN_QAT=true" >> $GITHUB_ENV
-          else
-            echo "Not a feature branch or qat script not found. Skipping Playwright tests."
-            echo "RUN_QAT=false" >> $GITHUB_ENV
-          fi
+      - name: Checkly Config Found
+        id: file_exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        # Only runs if all of the files exists
+        run: echo Checkly config found
 
+      # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
+      # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
       - name: Check PMCQA
-        if: ${{ env.RUN_QAT == 'true' && inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' }}
+        if: ${{ inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' && steps.check_files.outputs.files_exists == 'true' && github.ref != 'refs/heads/main'}}
         timeout-minutes: 10
         run: |
           # `version-hash` is created by jenkins script when a branch is pushed
@@ -69,21 +82,46 @@ jobs:
               hash=`curl --no-progress-meter --insecure $hash_url`
               sleep 5
           done
+    outputs:
+      status: ${{ steps.check_files.outputs.files_exists }}
 
-      - name: Install Playwright
-        if: ${{ env.RUN_QAT == 'true' }}
+  checkly-deploy:
+    name: Checkly Run and Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    # if the check_files step in the check-qat job doesn't fail
+    needs:
+      - check-qat
+    if: needs.check-qat.outputs.status == 'true'
+
+    concurrency:
+      group: ${{ github.ref_name || github.run_id }}-checkly-qat
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Check out the full git history
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16 # Checkly CLI requires Node.js 16 or higher.
+      - name: Restore or cache node_modules # Restore node_modules cache if available
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies # Install NPM dependencies if cache miss
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Run checks # Run Checkly checks and record test session
+        id: run-checks
+        if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
         run: |
-          . "$NVM_DIR/nvm.sh"
-
-          nvm install
-
-          # Playwright needs to be added in package.json as dependency
-          npm ci
-
-      - name: Run Playwright tests
-        if: ${{ env.RUN_QAT == 'true' }}
-        run: |
-          if [ "${{ inputs.QA_SITE_DOMAIN }}" != '' ]; then
-            export ENVIRONMENT_URL="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }}"
-          fi
-          npm run ${{ env.NPM_QAT_SCRIPT }}
+          npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
+          cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
+      - name: Deploy checks # Deploy checks to Checkly for debugging
+        # Only run if the pull request is merging into the main branch
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        id: deploy-checks
+        run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
