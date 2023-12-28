@@ -54,7 +54,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        uses: penske-media-corp/github-action-wordpress-test-setup@bugfix/check-npm-directory-before-test
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
@@ -115,7 +115,7 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: penske-media-corp/github-action-wordpress-test-setup@main
+        uses: penske-media-corp/github-action-wordpress-test-setup@bugfix/check-npm-directory-before-test
         with:
           bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
           git_checkout_fetch_depth: 0
