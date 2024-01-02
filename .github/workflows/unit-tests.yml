@@ -25,11 +25,32 @@ env:
   THEMES_DIR: "${WP_CORE_DIR}/wp-content/themes"
 
 jobs:
+  determine-runner-size:
+    name: Determine runner size
+    runs-on: ubuntu-latest
+
+    outputs:
+      runs-on: ${{ steps.set-runner.outputs.runs-on }}
+
+    steps:
+      - name: Set runner
+        id: set-runner
+        run: |
+          if [[ "$GITHUB_REPOSITORY" == "penske-media-corp/pmc-plugins" ]]; then
+            echo "Unit tests will use large runner"
+            echo "runs-on=ubuntu-latest-4-cores" >> $GITHUB_OUTPUT
+          else
+            echo "Unit tests will use standard runner"
+            echo "runs-on=ubuntu-latest" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
   phpunit:
     name: "PHP: ${{ matrix.job_label_php }}, WP: ${{ matrix.job_label_wordpress }}"
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.determine-runner-size.outputs.runs-on }}
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    needs: [ determine-runner-size ]
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-unit-test-phpunit-${{ matrix.job_label_php }}-${{ matrix.job_label_wordpress }}
@@ -108,6 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
+    needs: [ determine-runner-size ]
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-unit-test-jest
