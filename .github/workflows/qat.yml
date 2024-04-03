@@ -56,7 +56,7 @@ jobs:
           fetch-depth: 0 # Check out the full git history
       - name: Check for Checkly Config
         id: check_files
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3
         with:
           files: "**/checkly.config.ts"
 

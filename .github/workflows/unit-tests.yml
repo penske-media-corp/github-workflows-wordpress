@@ -115,7 +115,7 @@ jobs:
 
       - name: Capture coverage reports
         id: capture-coverage-reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ matrix.check_code_coverage }}
         with:
           name: phpunit-coverage
