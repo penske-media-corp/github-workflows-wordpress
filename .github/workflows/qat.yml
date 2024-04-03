@@ -51,7 +51,7 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Check out the full git history
       - name: Check for Checkly Config
@@ -99,7 +99,7 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Check out the full git history
       - uses: actions/setup-node@v3
@@ -107,7 +107,7 @@ jobs:
           node-version: 16 # Checkly CLI requires Node.js 16 or higher.
       - name: Restore or cache node_modules # Restore node_modules cache if available
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('package-lock.json') }}
