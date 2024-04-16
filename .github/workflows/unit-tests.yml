@@ -163,5 +163,49 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - name: Skip
-        run: exit 0
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          # Shallow clones should be disabled for a better relevancy of analysis.
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: phpunit-coverage
+          path: ${{ github.workspace }}/artifacts
+
+      - name: Fix paths in coverage reports
+        run: |
+          if [[ -z "$(find ./artifacts -type f -name 'coverage-*.xml')" ]]; then
+            echo "No reports to update"
+            exit 0
+          fi
+
+          # https://docs.sonarcloud.io/enriching/test-coverage/php-test-coverage/
+          for REPORT in ./artifacts/coverage-*.xml; do
+            echo "Updating paths in ${REPORT}"
+            sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' "$REPORT"
+          done
+
+      - name: Set Sonar variables
+        run: |
+          echo "" >> "./sonar-project.properties"
+
+          if [[ -d ./artifacts ]]; then
+            ls -l ./artifacts
+
+            echo "sonar.php.coverage.reportPaths=$(find ./artifacts -type f -name 'coverage-*.xml' | tr '\n', ',' | sed 's/,$//g')" >> "./sonar-project.properties"
+
+            cat ./sonar-project.properties
+          else
+            echo "sonar.php.coverage.reportPaths=" >> "./sonar-project.properties"
+          fi
+
+      - name: Analyze with SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v1.9.1
+        env:
+          # Token needed to get PR information, if any.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
