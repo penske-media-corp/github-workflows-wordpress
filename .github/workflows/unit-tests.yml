@@ -204,7 +204,7 @@ jobs:
           fi
 
       - name: Analyze with SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@v1.9.1
         env:
           # Token needed to get PR information, if any.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
