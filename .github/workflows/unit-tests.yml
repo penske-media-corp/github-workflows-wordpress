@@ -73,6 +73,14 @@ jobs:
             job_label_php: 'current'
             job_label_wordpress: 'latest'
 
+            # Temporary WordPress 6.5 testing (PASE-1948)
+          - php: '8.2'
+            wordpress: '6.5'
+            check_code_coverage: false
+            continue_on_error: true # non-failing
+            job_label_php: 'current'
+            job_label_wordpress: '6.5'
+
     steps:
       - name: Prepare environment
         uses: penske-media-corp/github-action-wordpress-test-setup@main
