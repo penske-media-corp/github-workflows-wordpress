@@ -11,14 +11,24 @@
 # 5. Displays the Node.js version using node -v.
 name: PMC AI PR Summarizer
 on:
-  pull_request:
-    types: [ opened, synchronize ]
+  workflow_call:
+    workflow_call:
+      secrets:
+        PMCDEVOPS_SSH_PRIVATE_KEY:
+          required: true
+        GITHUB_TOKEN:
+          required: true
+        AZURE_API_KEY:
+          required: true
+permissions:
+  contents: read
+  # To allow SonarCloud to post to PR.
+  pull-requests: write
+
 jobs:
   summarize:
+    name: PMC Pull Request Summarizer
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,7 +40,6 @@ jobs:
       - run: |
           npm ci
           node build/index.js
-          node -v
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
