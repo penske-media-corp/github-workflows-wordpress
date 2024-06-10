@@ -12,17 +12,15 @@
 name: PMC AI PR Summarizer
 on:
   workflow_call:
-    workflow_call:
-      secrets:
-        PMCDEVOPS_SSH_PRIVATE_KEY:
-          required: true
-        GITHUB_TOKEN:
-          required: true
-        AZURE_API_KEY:
-          required: true
+    secrets:
+      PMCDEVOPS_SSH_PRIVATE_KEY:
+        required: true
+      GITHUB_TOKEN:
+        required: true
+      AZURE_API_KEY:
+        required: true
 permissions:
   contents: read
-  # To allow SonarCloud to post to PR.
   pull-requests: write
 
 jobs:
