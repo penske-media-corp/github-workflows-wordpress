@@ -30,7 +30,7 @@ jobs:
 
   pr-ai-summarizer:
     name: AI Pull Requests Summarizer
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/pmc-ai-pr-summarizer.yml@feature/ai-summarizer
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/pmc-ai-pr-summarizer.yml@main
     secrets:
       SSH_KEY: ${{ secrets.PMCDEVOPS_SSH_PRIVATE_KEY }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
