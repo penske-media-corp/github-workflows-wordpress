@@ -39,5 +39,4 @@ jobs:
           npm ci
           node build/index.js
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
