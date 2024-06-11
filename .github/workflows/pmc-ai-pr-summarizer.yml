@@ -1,14 +1,3 @@
-# PMC AI PR Summarizer Workflow
-# This GitHub Actions workflow is triggered on pull requests when they are opened or synchronized.
-# It runs on an Ubuntu-latest environment.
-# The workflow has permissions to perform write operations on PR.
-#
-# Steps:
-# 1. Checks out the repository using the actions/checkout@v4.
-# 2. Sets up Node.js version 20 using actions/setup-node@v4.
-# 3. Installs dependencies using npm ci.
-# 4. Executes the build script from the build/index.js file.
-# 5. Displays the Node.js version using node -v.
 name: PMC AI PR Summarizer
 on:
   workflow_call:
