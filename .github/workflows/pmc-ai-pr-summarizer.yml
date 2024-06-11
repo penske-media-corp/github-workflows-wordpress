@@ -1,0 +1,32 @@
+name: PMC AI PR Summarizer
+on:
+  workflow_call:
+    secrets:
+      SSH_KEY:
+        required: true
+      AZURE_API_KEY:
+        required: true
+      GH_TOKEN:
+        required: true
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  summarize:
+    name: PMC Pull Request Summarizer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: penske-media-corp/pmc-ai-pr-summarizer
+          ssh-key: ${{ secrets.SSH_KEY }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: |
+          npm ci
+          node build/index.js
+        env:
+          AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
