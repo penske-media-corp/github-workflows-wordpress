@@ -17,6 +17,8 @@ on:
         required: true
       AZURE_API_KEY:
         required: true
+      GH_TOKEN:
+        required: true
 permissions:
   contents: read
   pull-requests: write
@@ -38,3 +40,4 @@ jobs:
           node build/index.js
         env:
           AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
