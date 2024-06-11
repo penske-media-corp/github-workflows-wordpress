@@ -42,3 +42,11 @@ jobs:
       BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
       GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  pr-ai-summarizer:
+    name: AI Pull Requests Summarizer
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/pmc-ai-pr-summarizer.yml@feature/ai-summarizer
+    secrets:
+      SSH_KEY: ${{ secrets.PMCDEVOPS_SSH_PRIVATE_KEY }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
