@@ -15,8 +15,6 @@ on:
     secrets:
       SSH_KEY:
         required: true
-      GITHUB_TOKEN:
-        required: true
       AZURE_API_KEY:
         required: true
 permissions:
