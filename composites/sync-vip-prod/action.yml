@@ -62,7 +62,7 @@ runs:
         # TODO: excludes? If used for `plugins` dir, use `exclude/restore_plugins`. How to flag? Also, how to handle the BGR situation?
 
         git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
-        git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ secrets.GIT_EMAIL }}"
+        git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
 
         if [[ ! -d "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}" ]]; then
           mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
