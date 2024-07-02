@@ -25,6 +25,11 @@ inputs:
 
 runs:
   using: 'composite'
+
+  concurrency:
+    group: ${{ inputs.destination_repo }}-${{ inputs.destination_branch }}
+    cancel-in-progress: false
+
   steps:
     - name: Check out source repository
       uses: actions/checkout@v4
