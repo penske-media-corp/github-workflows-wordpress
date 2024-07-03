@@ -11,6 +11,10 @@ inputs:
   destination_directory:
     description: 'Destination directory, relative to repository root.'
     required: true
+  protected_directories:
+    description: "Directories to preserve during sync. Typically used for brand-specific plugins that aren't in shared repositories."
+    required: false
+    default: ''
   GIT_EMAIL:
     description: 'Email address associated with GitHub user authoring commits.'
     required: true
@@ -52,9 +56,9 @@ runs:
     - name: Sync files
       shell: bash
       run: |
-        source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
+        EXCLUDE_DIRECTORIES=${{ inputs.protected_directories }}
 
-        # TODO: excludes? If used for `plugins` dir, use `exclude/restore_plugins`. How to flag? Also, how to handle the BGR situation?
+        source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
 
         git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
         git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
@@ -63,7 +67,9 @@ runs:
           mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
         fi
 
+        exclude_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
         rsync_repo_files "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        restore_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
 
         setup_git_committer "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest"
 
@@ -75,7 +81,5 @@ runs:
         fi
 
         git -C "$GITHUB_WORKSPACE/dest" status
-
         git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
-
         git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
