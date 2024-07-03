@@ -47,6 +47,7 @@ runs:
         path: 'jenkins-scripts'
         ssh-key: ${{ inputs.SSH_KEY }}
     - name: Debug
+      if: ${{ runner.debug == '1' }}
       shell: bash
       run: |
         ls -lah "$GITHUB_WORKSPACE"
