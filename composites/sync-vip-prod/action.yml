@@ -50,10 +50,19 @@ runs:
       if: ${{ runner.debug == '1' }}
       shell: bash
       run: |
-        ls -lah "$GITHUB_WORKSPACE"
-        ls -lah "$GITHUB_WORKSPACE/source"
-        ls -lah "$GITHUB_WORKSPACE/dest"
-        ls -lah "$GITHUB_WORKSPACE/jenkins-scripts"
+        DIRECTORIES=(
+            "$GITHUB_WORKSPACE"
+            "$GITHUB_WORKSPACE/source"
+            "$GITHUB_WORKSPACE/dest"
+            "$GITHUB_WORKSPACE/jenkins-scripts"
+        )
+
+        for DIRECTORY in "${DIRECTORIES[@]}"
+        do
+            echo "$DIRECTORY"
+            ls -lah $DIRECTORY
+            echo ""
+        done
     - name: Sync files
       shell: bash
       run: |
