@@ -56,7 +56,7 @@ runs:
     - name: Sync files
       shell: bash
       run: |
-        EXCLUDE_DIRECTORIES=${{ inputs.protected_directories }}
+        EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
 
         source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
 
