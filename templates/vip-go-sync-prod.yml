@@ -16,7 +16,7 @@ jobs:
       cancel-in-progress: false
 
     strategy:
-      max-parallel: ${{ secrets.VIP_DEPLOY_CONCURRENCY_LIMIT }}
+      max-parallel: 3
       matrix:
         include:
           - repo: wpcomvip/[REPO SLUG]
@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Sync
-        uses: penske-media-corp/github-workflows-wordpress/composites/sync-vip-prod
+        uses: penske-media-corp/github-workflows-wordpress/composites/sync-vip-prod@main
         with:
           destination_repo: ${{ matrix.repo }}
           destination_branch: ${{ matrix.branch }}
