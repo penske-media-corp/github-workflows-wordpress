@@ -1,0 +1,33 @@
+name: Sync to VIP Go Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: "Repository: ${{ matrix.repo }}, branch: ${{ matrix.branch }}"
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ matrix.repo }}:${{ matrix.branch }}"
+      cancel-in-progress: false
+
+    strategy:
+      max-parallel: 3
+      matrix:
+        include:
+          - repo: wpcomvip/[REPO SLUG]
+            branch: production
+
+    steps:
+      - name: Sync
+        uses: penske-media-corp/github-workflows-wordpress/composites/sync-vip-prod@main
+        with:
+          destination_repo: ${{ matrix.repo }}
+          destination_branch: ${{ matrix.branch }}
+          destination_directory: replace-me
+          GIT_EMAIL: ${{ secrets.VIP_DEPLOY_GIT_USER_EMAIL }}
+          SSH_KEY: ${{ secrets.PMCDEVOPS_SSH_PRIVATE_KEY }}

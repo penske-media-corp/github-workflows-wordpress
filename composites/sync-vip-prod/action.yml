@@ -1,0 +1,95 @@
+name: 'Sync to wpcomvip repo'
+description: "Sync code to a brand's VIP repository"
+
+inputs:
+  destination_repo:
+    description: 'Destination repository slug, including organization. eg, `wpcomvip/pmc`.'
+    required: true
+  destination_branch:
+    description: 'Destination branch'
+    required: true
+  destination_directory:
+    description: 'Destination directory, relative to repository root.'
+    required: true
+  protected_directories:
+    description: "Directories to preserve during sync. Typically used for brand-specific plugins that aren't in shared repositories."
+    required: false
+    default: ''
+  GIT_EMAIL:
+    description: 'Email address associated with GitHub user authoring commits.'
+    required: true
+  SSH_KEY:
+    description: 'SSH key with access to source and destination repositories.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Check out source repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}
+        fetch-depth: 1
+        path: 'source'
+    - name: Check out destination repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.destination_repo }}
+        ref: ${{ inputs.destination_branch }}
+        fetch-depth: 1
+        path: 'dest'
+        ssh-key: ${{ inputs.SSH_KEY }}
+    - name: Check out utility scripts
+      uses: actions/checkout@v4
+      with:
+        repository: "penske-media-corp/pmc-jenkins-scripts"
+        fetch-depth: 1
+        path: 'jenkins-scripts'
+        ssh-key: ${{ inputs.SSH_KEY }}
+    - name: Debug
+      if: ${{ runner.debug == '1' }}
+      shell: bash
+      run: |
+        DIRECTORIES=(
+            "$GITHUB_WORKSPACE"
+            "$GITHUB_WORKSPACE/source"
+            "$GITHUB_WORKSPACE/dest"
+            "$GITHUB_WORKSPACE/jenkins-scripts"
+        )
+
+        for DIRECTORY in "${DIRECTORIES[@]}"
+        do
+            echo "$DIRECTORY"
+            ls -lah $DIRECTORY
+            echo ""
+        done
+    - name: Sync files
+      shell: bash
+      run: |
+        EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
+
+        source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
+
+        git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
+        git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
+
+        if [[ ! -d "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}" ]]; then
+          mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        fi
+
+        exclude_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
+        rsync_repo_files "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        restore_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
+
+        setup_git_committer "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest"
+
+        git -C "$GITHUB_WORKSPACE/dest" add --all
+
+        if [[ '' == $(git -C "$GITHUB_WORKSPACE/dest" status --porcelain) ]]; then
+          echo "No changes to commit"
+          exit 0
+        fi
+
+        git -C "$GITHUB_WORKSPACE/dest" status
+        git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
+        git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
