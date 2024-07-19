@@ -29,76 +29,76 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    #- name: Check out source repository
-    #  uses: actions/checkout@v4
-    #  with:
-    #    repository: ${{ github.repository }}
-    #    fetch-depth: 1
-    #    path: 'source'
-    #- name: Check out destination repository
-    #  uses: actions/checkout@v4
-    #  with:
-    #    repository: ${{ inputs.destination_repo }}
-    #    ref: ${{ inputs.destination_branch }}
-    #    fetch-depth: 1
-    #    path: 'dest'
-    #    ssh-key: ${{ inputs.SSH_KEY }}
-    #- name: Check out utility scripts
-    #  uses: actions/checkout@v4
-    #  with:
-    #    repository: "penske-media-corp/pmc-jenkins-scripts"
-    #    fetch-depth: 1
-    #    path: 'jenkins-scripts'
-    #    ssh-key: ${{ inputs.SSH_KEY }}
-    #- name: Debug
-    #  if: ${{ runner.debug == '1' }}
-    #  shell: bash
-    #  run: |
-    #    DIRECTORIES=(
-    #        "$GITHUB_WORKSPACE"
-    #        "$GITHUB_WORKSPACE/source"
-    #        "$GITHUB_WORKSPACE/dest"
-    #        "$GITHUB_WORKSPACE/jenkins-scripts"
-    #    )
-    #
-    #    for DIRECTORY in "${DIRECTORIES[@]}"
-    #    do
-    #        echo "$DIRECTORY"
-    #        ls -lah $DIRECTORY
-    #        echo ""
-    #    done
+    - name: Check out source repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ github.repository }}
+        fetch-depth: 1
+        path: 'source'
+    - name: Check out destination repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.destination_repo }}
+        ref: ${{ inputs.destination_branch }}
+        fetch-depth: 1
+        path: 'dest'
+        ssh-key: ${{ inputs.SSH_KEY }}
+    - name: Check out utility scripts
+      uses: actions/checkout@v4
+      with:
+        repository: "penske-media-corp/pmc-jenkins-scripts"
+        fetch-depth: 1
+        path: 'jenkins-scripts'
+        ssh-key: ${{ inputs.SSH_KEY }}
+    - name: Debug
+      if: ${{ runner.debug == '1' }}
+      shell: bash
+      run: |
+        DIRECTORIES=(
+            "$GITHUB_WORKSPACE"
+            "$GITHUB_WORKSPACE/source"
+            "$GITHUB_WORKSPACE/dest"
+            "$GITHUB_WORKSPACE/jenkins-scripts"
+        )
+
+        for DIRECTORY in "${DIRECTORIES[@]}"
+        do
+            echo "$DIRECTORY"
+            ls -lah $DIRECTORY
+            echo ""
+        done
     - name: Sync files
       shell: bash
       run: |
         # Sync files.
-        exit 1
-        #EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
-        #
-        #source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
-        #
-        #git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
-        #git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
-        #
-        #if [[ ! -d "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}" ]]; then
-        #  mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
-        #fi
-        #
-        #exclude_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
-        #rsync_repo_files "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
-        #restore_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
-        #
-        #setup_git_committer "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest"
-        #
-        #git -C "$GITHUB_WORKSPACE/dest" add --all
-        #
-        #if [[ '' == $(git -C "$GITHUB_WORKSPACE/dest" status --porcelain) ]]; then
-        #  echo "No changes to commit"
-        #  exit 0
-        #fi
-        #
-        #git -C "$GITHUB_WORKSPACE/dest" status
-        #git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
-        #git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
+
+        EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
+
+        source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
+
+        git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
+        git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
+
+        if [[ ! -d "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}" ]]; then
+          mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        fi
+
+        exclude_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
+        rsync_repo_files "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        restore_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
+
+        setup_git_committer "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest"
+
+        git -C "$GITHUB_WORKSPACE/dest" add --all
+
+        if [[ '' == $(git -C "$GITHUB_WORKSPACE/dest" status --porcelain) ]]; then
+          echo "No changes to commit"
+          exit 0
+        fi
+
+        git -C "$GITHUB_WORKSPACE/dest" status
+        git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
+        git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
     - name: Get job details
       id: job-details
       if: ${{ failure() && '' != inputs.SLACK_WEBHOOK_URL }}
@@ -120,6 +120,7 @@ runs:
       with:
         payload-file-path: "${{ github.action_path }}/slack-payload.json"
       env:
+        # Payload uses envars due to https://github.com/slackapi/slack-github-action/issues/203.
         PAYLOAD_VAR_SOURCE: "${{ github.repository }}:${{ github.ref_name }}"
         PAYLOAD_VAR_DESTINATION: "${{ inputs.destination_repo }}:${{ inputs.destination_branch }}"
         PAYLOAD_VAR_DETAILS_URL: ${{ steps.job-details.outputs.url }}
