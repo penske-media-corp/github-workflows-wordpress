@@ -68,7 +68,6 @@ runs:
     #    done
     - name: Sync files
       shell: bash
-      id: sync
       run: |
         exit 1
         #EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
@@ -103,7 +102,7 @@ runs:
       if: failure()
       uses: Tiryoh/gha-jobid-action@v1
       with:
-        job_name: sync
+        job_name: ${{ github.job }}
     - name: Send Slack notification
       if: failure()
       uses: slackapi/slack-github-action@v1.26.0
