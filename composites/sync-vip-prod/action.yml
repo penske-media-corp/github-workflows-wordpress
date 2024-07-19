@@ -18,6 +18,9 @@ inputs:
   GIT_EMAIL:
     description: 'Email address associated with GitHub user authoring commits.'
     required: true
+  SLACK_WEBHOOK_URL:
+    description: 'Webhook URL to receive notifications when a sync fails.'
+    required: false # TODO: change to true once all uses are updated.
   SSH_KEY:
     description: 'SSH key with access to source and destination repositories.'
     required: true
@@ -66,30 +69,72 @@ runs:
     - name: Sync files
       shell: bash
       run: |
-        EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
-
-        source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
-
-        git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
-        git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
-
-        if [[ ! -d "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}" ]]; then
-          mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
-        fi
-
-        exclude_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
-        rsync_repo_files "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
-        restore_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
-
-        setup_git_committer "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest"
-
-        git -C "$GITHUB_WORKSPACE/dest" add --all
-
-        if [[ '' == $(git -C "$GITHUB_WORKSPACE/dest" status --porcelain) ]]; then
-          echo "No changes to commit"
-          exit 0
-        fi
-
-        git -C "$GITHUB_WORKSPACE/dest" status
-        git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
-        git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
+        exit 1
+        #EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
+        #
+        #source "$GITHUB_WORKSPACE/jenkins-scripts/bin/functions.sh"
+        #
+        #git -C "$GITHUB_WORKSPACE/dest" config --local user.name "pmcvipgo-sync"
+        #git -C "$GITHUB_WORKSPACE/dest" config --local user.email "${{ inputs.GIT_EMAIL }}"
+        #
+        #if [[ ! -d "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}" ]]; then
+        #  mkdir -p "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        #fi
+        #
+        #exclude_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
+        #rsync_repo_files "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest/${{ inputs.destination_directory }}"
+        #restore_plugins "$GITHUB_WORKSPACE" "dest" "${{ inputs.destination_directory }}"
+        #
+        #setup_git_committer "$GITHUB_WORKSPACE/source" "$GITHUB_WORKSPACE/dest"
+        #
+        #git -C "$GITHUB_WORKSPACE/dest" add --all
+        #
+        #if [[ '' == $(git -C "$GITHUB_WORKSPACE/dest" status --porcelain) ]]; then
+        #  echo "No changes to commit"
+        #  exit 0
+        #fi
+        #
+        #git -C "$GITHUB_WORKSPACE/dest" status
+        #git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
+        #git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
+    - name: Notify on failure
+      if: failure()
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        payload: |
+          {
+            text: "Failed to sync `${{ github.repository }}:${{ github.ref }}` to `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`"
+            "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":alert: Production Sync Failure :alert:"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Source Repo:* `${{ github.repository }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Destination Repo:* `${{ inputs.destination_repo }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Destination Directory:* `${{ inputs.destination_directory }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Details:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
