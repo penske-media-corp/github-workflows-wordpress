@@ -115,21 +115,14 @@ runs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Source Repo:* `${{ github.repository }}`"
+                  "text": "*Source:* `${{ github.repository }}:${{ github.ref_name }}`"
                 }
               },
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Destination Repo:* `${{ inputs.destination_repo }}`"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Destination Directory:* `${{ inputs.destination_directory }}`"
+                  "text": "*Destination:* `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`"
                 }
               },
               {
