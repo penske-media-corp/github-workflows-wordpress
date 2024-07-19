@@ -104,35 +104,35 @@ runs:
         payload: |
           {
             "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":alert: Production Sync Failure :alert:"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Source Repo:* `${{ github.repository }}`"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Destination Repo:* `${{ inputs.destination_repo }}`"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Destination Directory:* `${{ inputs.destination_directory }}`"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Details:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                  ]
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": ":alert: Production Sync Failure :alert:"
                 }
-              ]
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Source Repo:* `${{ github.repository }}`"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Destination Repo:* `${{ inputs.destination_repo }}`"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Destination Directory:* `${{ inputs.destination_directory }}`"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Details:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  }
+                ]
+              }
+            ]
           }
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
