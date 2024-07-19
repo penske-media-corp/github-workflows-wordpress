@@ -117,7 +117,7 @@ runs:
       if: failure()
       uses: slackapi/slack-github-action@v1.26.0
       with:
-        payload-file-path: "./slack-payload.json"
+        payload-file-path: "${{ github.action_path }}/slack-payload.json"
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
