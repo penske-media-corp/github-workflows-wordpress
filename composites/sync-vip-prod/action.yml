@@ -68,6 +68,7 @@ runs:
     #    done
     - name: Sync files
       shell: bash
+      id: sync
       run: |
         exit 1
         #EXCLUDE_DIRECTORIES="${{ inputs.protected_directories }}"
