@@ -103,7 +103,7 @@ runs:
       with:
         payload: |
           {
-            text: "Failed to sync `${{ github.repository }}:${{ github.ref }}` to `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`"
+            "text": "Failed to sync `${{ github.repository }}:${{ github.ref }}` to `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`",
             "blocks": [
                 {
                   "type": "header",
