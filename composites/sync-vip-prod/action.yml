@@ -104,9 +104,6 @@ runs:
       shell: bash
       run: |
         # Get job URL from API.
-
-        RUN_RUL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
         API_ROUTE="/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs"
         JOB_INFO="$(curl --get -Ss -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "${GITHUB_API_URL}${API_ROUTE}")"
         JOB_URL="$(echo "${JOB_INFO}" | jq -r '.jobs[0].html_url1')"
@@ -114,7 +111,7 @@ runs:
         if [[ "null" != "${JOB_URL}" ]]; then
           echo "url=${JOB_URL}" >> $GITHUB_OUTPUT
         else
-          echo "url=${RUN_URL}" >> $GITHUB_OUTPUT
+          echo "url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
         fi
     - name: Send Slack notification
       if: failure()
