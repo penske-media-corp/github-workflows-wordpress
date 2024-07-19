@@ -28,44 +28,44 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Check out source repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ github.repository }}
-        fetch-depth: 1
-        path: 'source'
-    - name: Check out destination repository
-      uses: actions/checkout@v4
-      with:
-        repository: ${{ inputs.destination_repo }}
-        ref: ${{ inputs.destination_branch }}
-        fetch-depth: 1
-        path: 'dest'
-        ssh-key: ${{ inputs.SSH_KEY }}
-    - name: Check out utility scripts
-      uses: actions/checkout@v4
-      with:
-        repository: "penske-media-corp/pmc-jenkins-scripts"
-        fetch-depth: 1
-        path: 'jenkins-scripts'
-        ssh-key: ${{ inputs.SSH_KEY }}
-    - name: Debug
-      if: ${{ runner.debug == '1' }}
-      shell: bash
-      run: |
-        DIRECTORIES=(
-            "$GITHUB_WORKSPACE"
-            "$GITHUB_WORKSPACE/source"
-            "$GITHUB_WORKSPACE/dest"
-            "$GITHUB_WORKSPACE/jenkins-scripts"
-        )
-
-        for DIRECTORY in "${DIRECTORIES[@]}"
-        do
-            echo "$DIRECTORY"
-            ls -lah $DIRECTORY
-            echo ""
-        done
+    #- name: Check out source repository
+    #  uses: actions/checkout@v4
+    #  with:
+    #    repository: ${{ github.repository }}
+    #    fetch-depth: 1
+    #    path: 'source'
+    #- name: Check out destination repository
+    #  uses: actions/checkout@v4
+    #  with:
+    #    repository: ${{ inputs.destination_repo }}
+    #    ref: ${{ inputs.destination_branch }}
+    #    fetch-depth: 1
+    #    path: 'dest'
+    #    ssh-key: ${{ inputs.SSH_KEY }}
+    #- name: Check out utility scripts
+    #  uses: actions/checkout@v4
+    #  with:
+    #    repository: "penske-media-corp/pmc-jenkins-scripts"
+    #    fetch-depth: 1
+    #    path: 'jenkins-scripts'
+    #    ssh-key: ${{ inputs.SSH_KEY }}
+    #- name: Debug
+    #  if: ${{ runner.debug == '1' }}
+    #  shell: bash
+    #  run: |
+    #    DIRECTORIES=(
+    #        "$GITHUB_WORKSPACE"
+    #        "$GITHUB_WORKSPACE/source"
+    #        "$GITHUB_WORKSPACE/dest"
+    #        "$GITHUB_WORKSPACE/jenkins-scripts"
+    #    )
+    #
+    #    for DIRECTORY in "${DIRECTORIES[@]}"
+    #    do
+    #        echo "$DIRECTORY"
+    #        ls -lah $DIRECTORY
+    #        echo ""
+    #    done
     - name: Sync files
       shell: bash
       run: |
@@ -103,7 +103,6 @@ runs:
       with:
         payload: |
           {
-            "text": "Failed to sync `${{ github.repository }}:${{ github.ref }}` to `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`",
             "blocks": [
                 {
                   "type": "header",
