@@ -119,5 +119,8 @@ runs:
       with:
         payload-file-path: "${{ github.action_path }}/slack-payload.json"
       env:
+        PAYLOAD_SOURCE: "${{ github.repository }}:${{ github.ref_name }}"
+        PAYLOAD_DESTINATION: "${{ inputs.destination_repo }}:${{ inputs.destination_branch }}"
+        PAYLOAD_DETAILS_URL: ${{ steps.job-details.outputs.url }}
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

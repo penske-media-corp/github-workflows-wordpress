@@ -11,21 +11,21 @@
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Source:* `${{ github.repository }}:${{ github.ref_name }}`"
+        "text": "*Source:* `${{ env.PAYLOAD_SOURCE }}`"
       }
     },
     {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Destination:* `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`"
+        "text": "*Destination:* `${{ env.PAYLOAD_DESTINATION }}`"
       }
     },
     {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Details:* ${{ steps.job-details.outputs.url }}"
+        "text": "*Details:* ${{ env.PAYLOAD_DETAILS_URL }}"
       }
     }
   ]
