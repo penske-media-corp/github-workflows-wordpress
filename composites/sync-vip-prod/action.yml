@@ -106,7 +106,7 @@ runs:
         # Get job URL from API.
         API_ROUTE="/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs"
         JOB_INFO="$(curl --get -Ss -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "${{ github.api_url }}${API_ROUTE}")"
-        JOB_URL="$(echo "${JOB_INFO}" | jq -r '.jobs[0].html_url1')"
+        JOB_URL="$(echo "${JOB_INFO}" | jq -r '.jobs[0].html_url')"
 
         if [[ "null" != "${JOB_URL}" ]]; then
           echo "url=${JOB_URL}" >> $GITHUB_OUTPUT
@@ -117,39 +117,7 @@ runs:
       if: failure()
       uses: slackapi/slack-github-action@v1.26.0
       with:
-        payload: |
-          {
-            "blocks": [
-              {
-                "type": "header",
-                "text": {
-                  "type": "plain_text",
-                  "text": ":alert: Production Sync Failed :alert:"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Source:* `${{ github.repository }}:${{ github.ref_name }}`"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Destination:* `${{ inputs.destination_repo }}:${{ inputs.destination_branch }}`"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*Details:* ${{ steps.job-details.outputs.url }}"
-                }
-              }
-            ]
-          }
+        payload-file-path: ./slack-payload.json
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_URL }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
