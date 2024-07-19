@@ -101,7 +101,7 @@ runs:
         #git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
     - name: Get job details
       id: job-details
-      if: failure() && '' != ${{ inputs.SLACK_WEBHOOK_URL }}
+      if: ${{ failure() && '' != inputs.SLACK_WEBHOOK_URL }}
       shell: bash
       run: |
         # Get job URL from API.
@@ -115,7 +115,7 @@ runs:
           echo "url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
         fi
     - name: Send Slack notification
-      if: failure() && '' != ${{ inputs.SLACK_WEBHOOK_URL }}
+      if: ${{ failure() && '' != inputs.SLACK_WEBHOOK_URL }}
       uses: slackapi/slack-github-action@v1.26.0
       with:
         payload-file-path: "${{ github.action_path }}/slack-payload.json"
