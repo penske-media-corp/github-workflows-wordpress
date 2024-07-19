@@ -11,21 +11,21 @@
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Source:* `${{ env.PAYLOAD_SOURCE }}`"
+        "text": "*Source:* `${{ env.PAYLOAD_VAR_SOURCE }}`"
       }
     },
     {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Destination:* `${{ env.PAYLOAD_DESTINATION }}`"
+        "text": "*Destination:* `${{ env.PAYLOAD_VAR_DESTINATION }}`"
       }
     },
     {
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "*Details:* ${{ env.PAYLOAD_DETAILS_URL }}"
+        "text": "*Details:* ${{ env.PAYLOAD_VAR_DETAILS_URL }}"
       }
     }
   ]
