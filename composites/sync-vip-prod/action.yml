@@ -97,7 +97,13 @@ runs:
         #git -C "$GITHUB_WORKSPACE/dest" status
         #git -C "$GITHUB_WORKSPACE/dest" commit -m "Sync from ${{ github.repository }}:${{ github.ref_name }} for revision ${REVISION} by ${AUTHOR}"
         #git -C "$GITHUB_WORKSPACE/dest" push origin ${{ inputs.destination_branch }}
-    - name: Notify on failure
+    - name: Get job details
+      id: job-details
+      if: failure()
+      uses: Tiryoh/gha-jobid-action@v1
+      with:
+        job_name: sync
+    - name: Send Slack notification
       if: failure()
       uses: slackapi/slack-github-action@v1.26.0
       with:
@@ -129,7 +135,7 @@ runs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Details:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  "text": "*Details:* ${{ steps.job-details.outputs.html_url }}"
                 }
               }
             ]
