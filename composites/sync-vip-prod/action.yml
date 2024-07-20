@@ -120,7 +120,7 @@ runs:
       with:
         payload-file-path: "${{ github.action_path }}/slack-payload.json"
       env:
-        # Payload uses envars due to https://github.com/slackapi/slack-github-action/issues/203.
+        # Payload file uses envars due to https://github.com/slackapi/slack-github-action/issues/203.
         PAYLOAD_VAR_SOURCE: "${{ github.repository }}:${{ github.ref_name }}"
         PAYLOAD_VAR_DESTINATION: "${{ inputs.destination_repo }}:${{ inputs.destination_branch }}"
         PAYLOAD_VAR_DETAILS_URL: ${{ steps.job-details.outputs.url }}
