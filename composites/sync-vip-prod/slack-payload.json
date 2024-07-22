@@ -1,0 +1,32 @@
+{
+  "blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": ":alert: Production Sync Failed :alert:"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Source:* `${{ env.PAYLOAD_VAR_SOURCE }}`"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Destination:* `${{ env.PAYLOAD_VAR_DESTINATION }}`"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Details:* ${{ env.PAYLOAD_VAR_DETAILS_URL }}"
+      }
+    }
+  ]
+}

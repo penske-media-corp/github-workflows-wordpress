@@ -30,4 +30,5 @@ jobs:
           destination_branch: ${{ matrix.branch }}
           destination_directory: replace-me
           GIT_EMAIL: ${{ secrets.VIP_DEPLOY_GIT_USER_EMAIL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.VIP_DEPLOY_SLACK_WEBHOOK_URL }}
           SSH_KEY: ${{ secrets.PMCDEVOPS_SSH_PRIVATE_KEY }}
