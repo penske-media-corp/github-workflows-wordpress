@@ -16,14 +16,25 @@ jobs:
     name: Assets
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    if: false
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-build-assets
       cancel-in-progress: true
 
     steps:
+      - name: Prepare environment
+        uses: penske-media-corp/github-action-wordpress-test-setup@add/build-verification
+        with:
+          bitbucket_read_only_ssh_key: "${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}"
+          git_checkout_fetch_depth: 1
+          github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
+          nodejs: true
+          vip_theme: false
+
       - name: Build static assets
         run: |
-          echo "Not implemented"
-          exit 0
+          . "$NVM_DIR/nvm.sh"
+          . pmc-test-asset-build
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
