@@ -146,7 +146,7 @@ jobs:
 
       - name: Run npm test
         run: |
-          . "$NVM_DIR/nvm.sh"
+          . "$NVM_DIR/nvm.sh" --no-use
           . pmc-test-npm
 
       - name: Ensure version-controlled files are not modified during the tests

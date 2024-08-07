@@ -68,17 +68,16 @@ jobs:
 
       - name: Install eslint
         run: |
-          . "$NVM_DIR/nvm.sh"
+          . "$NVM_DIR/nvm.sh" --no-use
 
           nvm install
-          nvm use
 
           npm i -g eslint
           npm i -g lint-diff
 
       - name: Run eslint
         run: |
-          . "$NVM_DIR/nvm.sh"
+          . "$NVM_DIR/nvm.sh" --no-use
           . pmc-manifest
 
           nvm use
