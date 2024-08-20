@@ -154,4 +154,3 @@ jobs:
               repo: context.repo.repo,
               body: `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`
             });
-
