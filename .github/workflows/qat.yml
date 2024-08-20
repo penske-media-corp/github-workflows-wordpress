@@ -119,7 +119,6 @@ jobs:
       - name: Run checks # Run Checkly checks and record test session
         id: run-checks
         if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
-        # continue-on-error: true
         run: |
           set +e # Disable exit on error
           npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
@@ -140,8 +139,7 @@ jobs:
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
       - name: Add Checkly report comment to PR
         uses: actions/github-script@v6
-        # if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
