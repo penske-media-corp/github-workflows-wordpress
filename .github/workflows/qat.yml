@@ -134,3 +134,19 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         id: deploy-checks
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
+      # Add a comment to the PR with the checkly report in it.
+      - name: Add Checkly report comment
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('checkly-github-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Checkly Report:\n\n${report}`
+            });
+
