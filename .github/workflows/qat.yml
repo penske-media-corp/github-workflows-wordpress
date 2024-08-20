@@ -121,16 +121,16 @@ jobs:
         if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
         # continue-on-error: true
         run: |
-          checkly_failed=false
           set +e # Disable exit on error
           npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
           exit_code=$?
           set -e # Enable exit on error
           if [ $exit_code -ne 0 ]; then
             echo "::error::Checkly checks failed. Please check the checkly-github-report.md in the summary for more details."
-            checkly_failed=true
+            echo "::set-output name=checkly_failed::true"
           else
             echo "::notice::Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
+            echo "::set-output name=checkly_failed::false"
           fi
           cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # Deploy checks to Checkly for debugging
@@ -147,7 +147,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('checkly-github-report.md', 'utf8');
-            const checklyStatus = $checkly_failed ? ':x:' : ':white_check_mark:';
+            const checklyStatus = ${{ steps.run-checks.outputs.checkly_failed }} ? ':x:' : ':white_check_mark:';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
