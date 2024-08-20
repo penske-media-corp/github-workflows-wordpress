@@ -126,7 +126,7 @@ jobs:
           if [ $exit_code -ne 0 ]; then
             echo "::error::Checkly checks failed. Please check the checkly-github-report.md in the summary for more details."
           else
-            echo "Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
+            echo "::notice::Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
           fi
           cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # Deploy checks to Checkly for debugging
