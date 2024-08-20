@@ -144,10 +144,11 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('checkly-github-report.md', 'utf8');
+            const checklyStatus = ${{ steps.run-checks.conclusion == 'success' && '✅' || '❌' }};
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `<details><summary>Checkly Report:</summary>\n\n${report}</details>`
+              body: `<details><summary>${checklyStatus} Checkly Report:</summary>\n\n${report}</details>`
             });
 
