@@ -134,8 +134,7 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         id: deploy-checks
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
-      # Add a comment to the PR with the checkly report in it.
-      - name: Add Checkly report comment
+      - name: Add Checkly report comment # Add a comment to the PR with the checkly report in it.
         uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         with:
