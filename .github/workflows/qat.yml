@@ -117,9 +117,16 @@ jobs:
       - name: Run checks # Run Checkly checks and record test session
         id: run-checks
         if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
+        continue-on-error: true
         run: |
           npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
           cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
+          # Check if the step failed
+          if [ $? -ne 0 ]; then
+            echo "::error::Checkly checks failed. Please check the checkly-github-report.md in the summary for more details."
+          else
+            echo "Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
+          fi
       - name: Deploy checks # Deploy checks to Checkly for debugging
         # Only run if the pull request is merging into the main branch
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
