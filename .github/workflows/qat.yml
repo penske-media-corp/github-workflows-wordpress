@@ -119,8 +119,11 @@ jobs:
         if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
         continue-on-error: true
         run: |
+          set +e # Disable exit on error
           npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
-          if [ $? -ne 0 ]; then
+          exit_code=$?
+          set -e # Enable exit on error
+          if [ $exit_code -ne 0 ]; then
             echo "::error::Checkly checks failed. Please check the checkly-github-report.md in the summary for more details."
           else
             echo "Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
