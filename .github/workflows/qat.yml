@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 # See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
 # more details on Checkly environment variables.
