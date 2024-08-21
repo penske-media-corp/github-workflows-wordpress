@@ -95,7 +95,7 @@ jobs:
     needs:
       - check-qat
     # Run QAT only if the check-qat job succeeded, the event is a pull request, and the action is opened or ready_for_review
-    if: needs.check-qat.outputs.status == 'true' && github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'ready_for_review')
+    if: needs.check-qat.outputs.status == 'true' && github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'ready_for_review' || github.event.pull_request.draft == true)
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
@@ -140,7 +140,7 @@ jobs:
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
       - name: Add Checkly report comment to PR
         uses: actions/github-script@v6
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'ready_for_review')
+        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'ready_for_review' || github.event.pull_request.draft == true)
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
