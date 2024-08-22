@@ -94,8 +94,6 @@ jobs:
     # if the check_files step in the check-qat job doesn't fail
     needs:
       - check-qat
-    # Run QAT only if the check-qat job succeeded, the event is a pull request, and the action is opened or ready_for_review
-    if: needs.check-qat.outputs.status == 'true' && github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'ready_for_review' || github.event.pull_request.draft == true)
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
@@ -138,19 +136,42 @@ jobs:
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         id: deploy-checks
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
-      - name: Add Checkly report comment to PR
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'ready_for_review' || github.event.pull_request.draft == true)
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('checkly-github-report.md', 'utf8');
-            const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
-            const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced (checklyFailed: ${checklyFailed})' : ':white_check_mark: All Playwright tests passed. Checkly Report (checklyFailed: ${checklyFailed})';
-            github.rest.issues.createComment({
+      - name: Post Checkly Report
+        if: github.event_name == 'pull_request' && github.event.pull_request.draft == true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm install @actions/github
+          const fs = require('fs');
+          const report = fs.readFileSync('checkly-github-report.md', 'utf8');
+          const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
+          const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced.' : ':white_check_mark: All Playwright tests passed. Checkly Report.';
+
+          const github = require('@actions/github');
+          const context = github.context;
+          const existingComments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existingReport = existingComments.data.find(
+            (comment) => comment.body.includes('Checkly Report')
+          );
+
+          if (!existingReport || existingReport.body !== `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`) {
+            const commentParams = {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`
-            });
+              body: `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`,
+            };
+
+            if (existingReport) {
+              commentParams.comment_id = existingReport.id;
+              await github.rest.issues.updateComment(commentParams);
+            } else {
+              await github.rest.issues.createComment(commentParams);
+            }
+          }
+
