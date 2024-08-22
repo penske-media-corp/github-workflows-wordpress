@@ -145,7 +145,7 @@ jobs:
             const fs = require('fs');
             const report = fs.readFileSync('checkly-github-report.md', 'utf8');
             const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
-            const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced.' : ':white_check_mark: All Playwright tests passed. Checkly Report.';
+            const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced' : ':white_check_mark: All Playwright tests passed. Checkly Report';
 
             const existingComment = await github.rest.issues.listComments({
               issue_number: context.issue.number,
