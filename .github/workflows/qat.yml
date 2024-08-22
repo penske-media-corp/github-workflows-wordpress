@@ -137,7 +137,7 @@ jobs:
         id: deploy-checks
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
       - name: Post Checkly Report
-        if: github.event_name == 'pull_request' && github.event.pull_request.draft == true
+        if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
