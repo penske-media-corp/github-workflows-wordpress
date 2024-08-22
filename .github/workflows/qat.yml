@@ -167,7 +167,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`,
+              body: '<details><summary>' + checklyStatus + ':</summary>\n\n' + report + '</details>',
             };
 
             if (existingReport) {
