@@ -146,8 +146,8 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('checkly-github-report.md', 'utf8');
-            const checklyFailed = ${{ steps.checkly-deploy.outputs.checkly_failed }};
-            const checklyStatus = checklyFailed ? `:x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced (checklyFailed: ${checklyFailed})` : `:white_check_mark: All Playwright tests passed. Checkly Report (checklyFailed: ${checklyFailed})`;
+            const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
+            const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced (checklyFailed: ${checklyFailed})' : ':white_check_mark: All Playwright tests passed. Checkly Report (checklyFailed: ${checklyFailed})';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
