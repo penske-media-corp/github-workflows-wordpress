@@ -141,7 +141,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm install @actions/github
           const fs = require('fs');
           const report = fs.readFileSync('checkly-github-report.md', 'utf8');
           const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
@@ -159,7 +158,11 @@ jobs:
             (comment) => comment.body.includes('Checkly Report')
           );
 
-          if (!existingReport || existingReport.body !== `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`) {
+          const existingChecklyStatus = existingReport
+            ? existingReport.body.split(':')[0]
+            : null;
+
+          if (!existingReport || existingChecklyStatus !== checklyStatus) {
             const commentParams = {
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -174,4 +177,3 @@ jobs:
               await github.rest.issues.createComment(commentParams);
             }
           }
-
