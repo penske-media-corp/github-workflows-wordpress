@@ -94,6 +94,7 @@ jobs:
     # if the check_files step in the check-qat job doesn't fail
     needs:
       - check-qat
+    if: needs.check-qat.outputs.status == 'true'
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
