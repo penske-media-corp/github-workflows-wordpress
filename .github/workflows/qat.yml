@@ -26,6 +26,8 @@ on:
 
 permissions:
   contents: read
+  # To allow action to post to PR.
+  pull-requests: write
 
 # See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
 # more details on Checkly environment variables.
@@ -92,7 +94,6 @@ jobs:
     # if the check_files step in the check-qat job doesn't fail
     needs:
       - check-qat
-    if: needs.check-qat.outputs.status == 'true'
 
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-checkly-qat
@@ -118,10 +119,55 @@ jobs:
         id: run-checks
         if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
         run: |
+          set +e # Disable exit on error
           npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
+          exit_code=$?
+          set -e # Enable exit on error
+          if [ $exit_code -ne 0 ]; then
+            echo "::error::Checkly checks failed. Please check the checkly-github-report.md in the summary for more details."
+            echo "checkly_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "::notice::Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
+            echo "checkly_failed=false" >> $GITHUB_OUTPUT
+          fi
           cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
       - name: Deploy checks # Deploy checks to Checkly for debugging
         # Only run if the pull request is merging into the main branch
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         id: deploy-checks
         run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
+      - name: Add Checkly report comment to PR
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('checkly-github-report.md', 'utf8');
+            const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
+            const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced' : ':white_check_mark: All Playwright tests passed. Checkly Report';
+
+            const existingComment = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            // Delete any existing Checkly Report comments
+            for (const comment of existingComment.data) {
+              if (comment.body.includes('Checkly Report')) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id
+                });
+              }
+            };
+
+            // Create a new Checkly Report comment
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`
+            });
