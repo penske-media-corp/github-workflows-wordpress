@@ -66,6 +66,9 @@ jobs:
           github_read_only_ssh_key: "${{ secrets.GITHUB_READ_ONLY_SSH_KEY }}"
           nodejs: 1
 
+      - name: Enforce TypeScript
+        uses: penske-media-corp/github-workflows-wordpress/composites/enforce-pmc-scripts@enforce-ts
+
       - name: Install eslint
         run: |
           . "$NVM_DIR/nvm.sh" --no-use
@@ -86,10 +89,3 @@ jobs:
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
-
-  enforce-ts:
-    name: Enforce TypeScript
-    runs-on: ubuntu-latest
-    steps:
-      - name: Enforce TypeScript
-        uses: penske-media-corp/github-workflows-wordpress/composites/enforce-pmc-scripts@enforce-ts
