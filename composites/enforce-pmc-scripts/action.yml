@@ -6,6 +6,9 @@ runs:
   steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: test
+      run: |
+        ls -la ${{ github.action_path }}/..
     - name: Enforce @penskemediacorp/wordpress-scripts
-      run: ${{ github.action_path }}/scripts/enforce-pmc-scripts.sh
+      run: ${{ github.action_path }}/enforce-pmc-scripts.sh
       shell: bash
