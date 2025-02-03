@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+set -e
 
 HAS_ERROR=""
 MISSING_PACKAGE_JSONS=()
@@ -18,10 +20,12 @@ find_package_json() {
 }
 
 GIT_REPO=$(git remote get-url origin)
-DEFAULT_BRANCH=$(
-  git ls-remote --symref ${GIT_REPO} HEAD 2>stderr \
-    | awk '/^ref:/ {sub(/refs\/heads\//, "", $2); print $2}'
-  )
+if [[ -z ${DEFAULT_BRANCH} ]]; then
+  DEFAULT_BRANCH=$(
+    git ls-remote --symref ${GIT_REPO} HEAD 2>stderr \
+      | awk '/^ref:/ {sub(/refs\/heads\//, "", $2); print $2}'
+    )
+fi
 
 if [[ -f .pmc-scripts ]]; then
   source .pmc-scripts
