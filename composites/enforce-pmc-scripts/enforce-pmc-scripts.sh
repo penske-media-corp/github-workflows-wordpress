@@ -1,5 +1,6 @@
 #!/bin/bash
 
+HAS_ERROR=""
 MISSING_PACKAGE_JSONS=()
 NEED_UPDATE_PACKAGE_JSONS=()
 NEW_JS_FILES=()
@@ -21,8 +22,6 @@ DEFAULT_BRANCH=$(
   git ls-remote --symref ${GIT_REPO} HEAD 2>stderr \
     | awk '/^ref:/ {sub(/refs\/heads\//, "", $2); print $2}'
   )
-
-HAS_ERROR=""
 
 if [[ -f .pmc-scripts ]]; then
   source .pmc-scripts

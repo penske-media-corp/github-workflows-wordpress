@@ -88,6 +88,8 @@ jobs:
         run: git diff --exit-code
 
   enforce-ts:
+    name: enforce-ts
+    runs-on: ubuntu-latest
     steps:
       - name: Enforce TypeScript
         uses: penske-media-corp/github-workflows-wordpress/composites/enforce-pmc-scripts@enforce-ts
