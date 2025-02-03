@@ -86,3 +86,8 @@ jobs:
 
       - name: Ensure version-controlled files are not modified during the tests
         run: git diff --exit-code
+
+  enforce-ts:
+    steps:
+      - name: Enforce TypeScript
+        uses: penske-media-corp/github-workflows-wordpress/composites/enforce-pmc-scripts@enforce-ts

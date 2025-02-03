@@ -1,0 +1,11 @@
+name: 'Enforce @penskemediacorp/wordpress-scripts'
+description: "Enforce typescript and @penskemediacorp/wordpress-scripts"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Enforce @penskemediacorp/wordpress-scripts
+      run: ${{ github.action_path }}/scripts/enforce-pmc-scripts.sh
+      shell: bash
