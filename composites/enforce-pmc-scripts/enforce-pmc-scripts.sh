@@ -26,6 +26,8 @@ if [[ -z ${DEFAULT_BRANCH} ]]; then
     )
 fi
 
+git fetch origin ${DEFAULT_BRANCH}
+
 if [[ -f .pmc-scripts ]]; then
   source .pmc-scripts
 fi
@@ -34,12 +36,12 @@ fi
 for file in $(
   if [[ -z ${JS_IGNORE_PATTERNS} ]]; then
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*.js' '*.ts' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
-      | grep -E '\.js$'
+      -- '*.js' '*.ts' '*.jsx' '*.tsx' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+      | grep -E '\.jsx?$'
   else
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
       -- '*.js' '*.ts' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
-      | grep -E '\.js$' \
+      | grep -E '\.jsx?$' \
       | grep -v -E "${JS_IGNORE_PATTERNS}"
   fi
 ); do
@@ -50,10 +52,10 @@ done
 NEW_FILES=$(
     if [[ -z ${PMC_SCRIPTS_IGNORE_PATTERNS} ]]; then
       git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-        -- '*.js' '*.ts' ':!/vendor/' ':!/.cache/' ':!/node_modules/'
+        -- '*.js' '*.ts' '*.jsx' '*.tsx' ':!/vendor/' ':!/.cache/' ':!/node_modules/'
     else
       git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-        -- '*.js' '*.ts' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+        -- '*.js' '*.ts' '*.jsx' '*.tsx' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
         | grep -v -E "${PMC_SCRIPTS_IGNORE_PATTERNS}"
     fi
   )
