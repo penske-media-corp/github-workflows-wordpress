@@ -67,7 +67,7 @@ jobs:
           nodejs: 1
 
       - name: Enforce TypeScript
-        uses: penske-media-corp/github-workflows-wordpress/composites/enforce-pmc-scripts@enforce-ts
+        uses: penske-media-corp/github-workflows-wordpress/composites/enforce-pmc-scripts@main
 
       - name: Install eslint
         run: |
