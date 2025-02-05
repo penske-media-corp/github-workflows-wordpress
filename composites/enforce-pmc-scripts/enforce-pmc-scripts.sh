@@ -29,6 +29,7 @@ if [[ -f .pmc-scripts ]]; then
   source .pmc-scripts
 fi
 
+# Enforce TypeScript for new files
 for file in $(
   if [[ -z ${JS_IGNORE_PATTERNS} ]]; then
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
@@ -53,6 +54,22 @@ for file in $(
     if [[ -z $( grep "@penskemediacorp/wordpress-scripts" $package_json ) || -z $( grep "pmc-scripts" $package_json ) ]]; then
       NEED_UPDATE_PACKAGE_JSONS+=($package_json)
     fi
+  fi
+done
+
+# Enforce package.json to use @penskemediacorp/wordpress-scripts package
+for package_json in $(
+  if [[ -z ${JS_IGNORE_PATTERNS} ]]; then
+    git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
+      -- '*.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/'
+  else
+    git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
+      -- '*.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+      | grep -v -E "${JS_IGNORE_PATTERNS}"
+  fi
+); do
+  if [[ -z $( grep "@penskemediacorp/wordpress-scripts" $package_json ) || -z $( grep "pmc-scripts" $package_json ) ]]; then
+    NEED_UPDATE_PACKAGE_JSONS+=($package_json)
   fi
 done
 
