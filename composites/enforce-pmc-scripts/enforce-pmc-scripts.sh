@@ -5,13 +5,18 @@ HAS_ERROR=""
 NEED_UPDATE_PACKAGE_JSONS=()
 NEW_JS_FILES=()
 
+if [[ -f .pmc-scripts ]]; then
+  # load the env JS_IGNORE_PATTERNS from the .pmc-scripts file
+  export $(grep -v '^#' .pmc-scripts  | xargs)
+fi
+
 find_package_json() {
   if [[ -f "$1/package.json" ]]; then
     if jq -e '.dependencies["@wordpress/scripts"] // .devDependencies["@wordpress/scripts"] // .dependencies["@penskemediacorp/wordpress-scripts"] // .devDependencies["@penskemediacorp/wordpress-scripts"]' "$1/package.json" >/dev/null 2>&1; then
       echo "$1/package.json"
     fi
   elif [[ "${1}" != "." && "$1" != "$2" ]]; then
-    find_package_json $(dirname "$1") "$2"
+    find_package_json "$(dirname "$1")" "$2"
   fi
 }
 
@@ -23,11 +28,7 @@ if [[ -z ${DEFAULT_BRANCH} ]]; then
     )
 fi
 
-git fetch origin ${DEFAULT_BRANCH} >/dev/null 2>&1
-
-if [[ -f .pmc-scripts ]]; then
-  source .pmc-scripts
-fi
+git fetch origin "${DEFAULT_BRANCH}" >/dev/null 2>&1
 
 # Enforce TypeScript for new files
 for file in $(
@@ -44,14 +45,15 @@ for file in $(
 ); do
   path=$(dirname "$file")
   if [[ "${GIT_REPO}" =~ "penske-media-corp/pmc-plugins" ]]; then
-    package_json=$( find_package_json "${path}" $(echo "${path}" | cut -d/ -f1) )
+    package_json=$( find_package_json "${path}" "$(echo "${path}" | cut -d/ -f1)" )
   else
     package_json=$( find_package_json "${path}" )
   fi
 
   if [[ -n "$package_json" ]]; then
     NEW_JS_FILES+=("${file}")
-    if [[ -z $( grep "@penskemediacorp/wordpress-scripts" "$package_json" ) || -z $( grep "pmc-scripts" "$package_json" ) ]]; then
+    #if [[ -z $( grep "@penskemediacorp/wordpress-scripts" "$package_json" ) || -z $( grep "pmc-scripts" "$package_json" ) ]]; then
+    if ( ! grep -q "@penskemediacorp/wordpress-scripts" "$package_json" || ! grep -q "pmc-scripts" "$package_json" ); then
       NEED_UPDATE_PACKAGE_JSONS+=("$package_json")
     fi
   fi
@@ -68,17 +70,18 @@ for package_json in $(
       | grep -v -E "${JS_IGNORE_PATTERNS}"
   fi
 ); do
-  if [[ -z $( grep "@penskemediacorp/wordpress-scripts" "$package_json" ) || -z $( grep "pmc-scripts" "$package_json" ) ]]; then
+  #if [[ -z $( grep "@penskemediacorp/wordpress-scripts" "$package_json" ) || -z $( grep "pmc-scripts" "$package_json" ) ]]; then
+  if ( ! grep -q "@penskemediacorp/wordpress-scripts" "$package_json" || ! grep -q "pmc-scripts" "$package_json"); then
     NEED_UPDATE_PACKAGE_JSONS+=("$package_json")
   fi
 done
 
-if [[ -n "${NEW_JS_FILES[@]}" ]]; then
+if [[ ${#NEW_JS_FILES[@]} -ne 0 ]]; then
   HAS_ERROR=true
   echo -e "\nTypeScript is required for the following JS file(s): "
   printf ' - %s\n' "${NEW_JS_FILES[@]}" | sort -u
 fi
-if [[ -n "${NEED_UPDATE_PACKAGE_JSONS[@]}" ]]; then
+if [[ ${#NEED_UPDATE_PACKAGE_JSONS[@]} -ne 0 ]]; then
   HAS_ERROR=true
   echo -e "\nBuild script needs to use @penskemediacorp/wordpress-scripts package:"
   printf ' - %s\n' "${NEED_UPDATE_PACKAGE_JSONS[@]}" | sort -u
