@@ -7,7 +7,7 @@ NEW_JS_FILES=()
 
 find_package_json() {
   if [[ -f "$1/package.json" ]]; then
-    if [[ -n $( grep "@wordpress/scripts" $1/package.json ) || -n $( grep "@penskemediacorp/wordpress-scripts" $1/package.json ) ]]; then
+    if jq -e '.dependencies["@wordpress/scripts"] // .devDependencies["@wordpress/scripts"] // .dependencies["@penskemediacorp/wordpress-scripts"] // .devDependencies["@penskemediacorp/wordpress-scripts"]' "$1/package.json" >/dev/null 2>&1; then
       echo "$1/package.json"
     fi
   elif [[ ${1} != "." && $1 != $2 ]]; then
@@ -75,12 +75,12 @@ done
 
 if [[ -n ${NEW_JS_FILES[@]} ]]; then
   HAS_ERROR=true
-  echo -e "\nTypescripts are required for the following js file(s): "
+  echo -e "\nTypeScript is required for the following JS file(s): "
   printf ' - %s\n' ${NEW_JS_FILES[@]} | sort -u
 fi
 if [[ -n ${NEED_UPDATE_PACKAGE_JSONS[@]} ]]; then
   HAS_ERROR=true
-  echo -e "\nBuild script need to use @penskemediacorp/wordpress-scripts package:"
+  echo -e "\nBuild script needs to use @penskemediacorp/wordpress-scripts package:"
   printf ' - %s\n' ${NEED_UPDATE_PACKAGE_JSONS[@]} | sort -u
 fi
 

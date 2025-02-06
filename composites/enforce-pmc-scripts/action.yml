@@ -1,5 +1,5 @@
 name: 'Enforce @penskemediacorp/wordpress-scripts'
-description: "Enforce typescript and @penskemediacorp/wordpress-scripts"
+description: "Enforce TypeScript and @penskemediacorp/wordpress-scripts"
 
 runs:
   using: 'composite'
