@@ -7,6 +7,7 @@ NEW_JS_FILES=()
 
 if [[ -f .pmc-scripts ]]; then
   # load the env JS_IGNORE_PATTERNS from the .pmc-scripts file
+  # shellcheck disable=SC2046
   export $(grep -v '^#' .pmc-scripts  | xargs)
 fi
 
