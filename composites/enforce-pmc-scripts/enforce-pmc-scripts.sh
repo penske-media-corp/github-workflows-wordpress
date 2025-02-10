@@ -53,7 +53,6 @@ for file in $(
 
   if [[ -n "$package_json" ]]; then
     NEW_JS_FILES+=("${file}")
-    #if [[ -z $( grep "@penskemediacorp/wordpress-scripts" "$package_json" ) || -z $( grep "pmc-scripts" "$package_json" ) ]]; then
     if ( ! grep -q "@penskemediacorp/wordpress-scripts" "$package_json" || ! grep -q "pmc-scripts" "$package_json" ); then
       NEED_UPDATE_PACKAGE_JSONS+=("$package_json")
     fi
@@ -71,7 +70,6 @@ for package_json in $(
       | grep -v -E "${JS_IGNORE_PATTERNS}"
   fi
 ); do
-  #if [[ -z $( grep "@penskemediacorp/wordpress-scripts" "$package_json" ) || -z $( grep "pmc-scripts" "$package_json" ) ]]; then
   if ( ! grep -q "@penskemediacorp/wordpress-scripts" "$package_json" || ! grep -q "pmc-scripts" "$package_json"); then
     NEED_UPDATE_PACKAGE_JSONS+=("$package_json")
   fi
