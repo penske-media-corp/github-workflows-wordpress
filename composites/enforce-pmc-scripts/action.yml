@@ -1,0 +1,11 @@
+name: 'Enforce @penskemediacorp/wordpress-scripts'
+description: "Enforce TypeScript and @penskemediacorp/wordpress-scripts"
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Enforce @penskemediacorp/wordpress-scripts
+      run: |
+        DEFAULT_BRANCH=${{ github.event.pull_request.base.ref }}        
+        . ${{ github.action_path }}/enforce-pmc-scripts.sh
+      shell: bash
