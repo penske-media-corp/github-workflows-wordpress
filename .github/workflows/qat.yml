@@ -3,6 +3,16 @@ name: QAT
 on:
   workflow_call:
     inputs:
+      ENVIRONMENT_URL:
+        default: ''
+        description: 'URL of environment for testing'
+        required: false
+        type: string
+      ENVIRONMENT_URL_VERSION_HASH:
+        default: ''
+        description: 'URL of version hash'
+        required: false
+        type: string
       QA_SITE_DOMAIN:
         default: ''
         description: 'QA Site Domain'
@@ -71,17 +81,16 @@ jobs:
       # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
       # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
       - name: Check PMCQA
-        if: ${{ inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' && steps.check_files.outputs.files_exists == 'true' && github.ref != 'refs/heads/main'}}
+        if: ${{ inputs.ENVIRONMENT_URL  != '' && inputs.ENVIRONMENT_URL_VERSION_HASH != '' && steps.check_files.outputs.files_exists == 'true' && github.ref != 'refs/heads/main'}}
         timeout-minutes: 10
         run: |
           # `version-hash` is created by jenkins script when a branch is pushed
           # https://github.com/penske-media-corp/pmc-jenkins-scripts/blob/8ee0244a8485b61cfa6d3f9af00f7e6a55ddb042/bin/push-pmcqa-repo.sh#L36-L38
-          hash_url="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo-sites/${{ env.FEATURE_BRANCH_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
-          echo "HASH_URL: $hash_url"
-          hash=`curl --no-progress-meter --insecure $hash_url`
+          echo "HASH_URL: ${{ inputs.ENVIRONMENT_URL_VERSION_HASH }}"
+          hash=`curl --no-progress-meter --insecure ${{ inputs.ENVIRONMENT_URL_VERSION_HASH }}`
           until [[ $hash == ${{ github.event.pull_request.head.sha }} ]]; do
               echo -n "Waiting for Jenkins Deployment ... \n"
-              hash=`curl --no-progress-meter --insecure $hash_url`
+              hash=`curl --no-progress-meter --insecure ${{ inputs.ENVIRONMENT_URL_VERSION_HASH }}`
               sleep 5
           done
     outputs:
@@ -121,7 +130,7 @@ jobs:
         if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
         run: |
           set +e # Disable exit on error
-          npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
+          npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=${{ inputs.ENVIRONMENT_URL }} --reporter=github --record
           exit_code=$?
           set -e # Enable exit on error
           if [ $exit_code -ne 0 ]; then
