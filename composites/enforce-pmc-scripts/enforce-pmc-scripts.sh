@@ -63,10 +63,10 @@ done
 for package_json in $(
   if [[ -z "${JS_IGNORE_PATTERNS}" ]]; then
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/'
+      -- '/package.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/'
   else
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+      -- '/package.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
       | grep -v -E "${JS_IGNORE_PATTERNS}"
   fi
 ); do
