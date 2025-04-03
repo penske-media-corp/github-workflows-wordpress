@@ -48,19 +48,7 @@ jobs:
 
           # Set environment URLs based on the branch name
           #
-          # The `version-hash` file is created by jenkins script when a branch is pushed
-          # https://github.com/penske-media-corp/pmc-jenkins-scripts/blob/8ee0244a8485b61cfa6d3f9af00f7e6a55ddb042/bin/push-pmcqa-repo.sh#L36-L38
-          # 
-          # Examples
-          #
-          # Feature branch example:
-          # ENVIRONMENT_URL: "https://test.sourcingjournal.pmcqa.com"
-          # HASH_URL: "https://test.sourcingjournal.pmcqa.com/wp-content-vipgo-sites/test/themes/vip/pmc-sourcingjournal-2021/version-hash"
-          #
-          # main branch example:
-          # ENVIRONMENT_URL: "https://sourcingjournal.pmcqa.com"
-          # HASH_URL: "https://sourcingjournal.pmcqa.com/wp-content-vipgo/themes/vip/pmc-sourcingjournal-2021/version-hash"
-          #
+          # @see https://penskemedia.atlassian.net/wiki/x/IICBW
           if [[ "$BRANCH_NAME" == "main" ]]; then
             ENVIRONMENT_URL="https://${{ inputs.QA_SITE_DOMAIN }}"
             HASH_URL="https://${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
