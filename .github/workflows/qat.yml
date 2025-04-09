@@ -57,8 +57,9 @@ jobs:
             HASH_URL="https://${BRANCH_NAME}.${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo-sites/${BRANCH_NAME}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
           fi
 
-          echo "ENVIRONMENT_URL=$ENVIRONMENT_URL" >> $GITHUB_ENV
-          echo "HASH_URL=$HASH_URL" >> $GITHUB_ENV      
+          # Convert URLs to lowercase and export to environment
+          echo "ENVIRONMENT_URL=$(echo $ENVIRONMENT_URL | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "HASH_URL=$(echo $HASH_URL | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV      
 
       - name: Quality Assurance Testing (QAT)
         id: qat
