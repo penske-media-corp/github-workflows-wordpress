@@ -15,35 +15,14 @@ on:
         type: string
 
     secrets:
-      BITBUCKET_READ_ONLY_SSH_KEY:
-        required: false
-      GITHUB_READ_ONLY_SSH_KEY:
-        required: false
       CHECKLY_API_KEY:
         required: false
       CHECKLY_ACCOUNT_ID:
         required: false
 
-permissions:
-  contents: read
-  # To allow action to post to PR.
-  pull-requests: write
-
-# See https://www.checklyhq.com/docs/cli/command-line-reference/#npx-checkly-deploy and supporting documentation for
-# more details on Checkly environment variables.
-env:
-  CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
-  CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
-  CHECKLY_REPO_BRANCH: ${{ github.head_ref }}
-  CHECKLY_REPO_COMMIT_OWNER: ${{ github.actor }}
-  CHECKLY_REPO_SHA: ${{ github.sha }}
-  CHECKLY_TEST_ENVIRONMENT: ${{ inputs.QA_SITE_DOMAIN }}
-  FEATURE_BRANCH_NAME: $(echo "${{ github.head_ref || github.ref_name }}" | sed -e 's/feature\/\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
-  NPM_QAT_SCRIPT: "qat"
-
 jobs:
-  check-qat:
-    name: Check for QAT
+  qat:
+    name: QAT
     runs-on: ubuntu-latest
     timeout-minutes: 90
     if: ${{ github.repository != 'penske-media-corp/github-workflows-wordpress' }}
@@ -51,124 +30,43 @@ jobs:
     concurrency:
       group: ${{ github.ref_name || github.run_id }}-qat-check
       cancel-in-progress: true
-
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Check out the full git history
-      - name: Check for Checkly Config
-        id: check_files
-        uses: andstor/file-existence-action@v3
-        with:
-          files: "**/checkly.config.ts"
+      - name: Check out code
+        uses: actions/checkout@v4
 
-      - name: Checkly Config Found
-        id: file_exists
-        if: steps.check_files.outputs.files_exists == 'true'
-        # Only runs if all of the files exists
-        run: echo Checkly config found
-
-      # Poll the PMCQA environment to wait for a deployment triggered by Jenkins to complete before continuing the workflow.
-      # This ensures any later steps that interact with PMCQA reflect the code changes from the pull request rather than an older version.
-      - name: Check PMCQA
-        if: ${{ inputs.THEME_NAME  != '' && inputs.QA_SITE_DOMAIN != '' && steps.check_files.outputs.files_exists == 'true' && github.ref != 'refs/heads/main'}}
-        timeout-minutes: 10
+      - name: Set environment variables
         run: |
-          # `version-hash` is created by jenkins script when a branch is pushed
-          # https://github.com/penske-media-corp/pmc-jenkins-scripts/blob/8ee0244a8485b61cfa6d3f9af00f7e6a55ddb042/bin/push-pmcqa-repo.sh#L36-L38
-          hash_url="https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo-sites/${{ env.FEATURE_BRANCH_NAME }}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
-          echo "HASH_URL: $hash_url"
-          hash=`curl --no-progress-meter --insecure $hash_url`
-          until [[ $hash == ${{ github.event.pull_request.head.sha }} ]]; do
-              echo -n "Waiting for Jenkins Deployment ... \n"
-              hash=`curl --no-progress-meter --insecure $hash_url`
-              sleep 5
-          done
-    outputs:
-      status: ${{ steps.check_files.outputs.files_exists }}
-
-  checkly-deploy:
-    name: Checkly Run and Deploy
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    # if the check_files step in the check-qat job doesn't fail
-    needs:
-      - check-qat
-    if: needs.check-qat.outputs.status == 'true'
-
-    concurrency:
-      group: ${{ github.ref_name || github.run_id }}-checkly-qat
-      cancel-in-progress: true
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Check out the full git history
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16 # Checkly CLI requires Node.js 16 or higher.
-      - name: Restore or cache node_modules # Restore node_modules cache if available
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies # Install NPM dependencies if cache miss
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Run checks # Run Checkly checks and record test session
-        id: run-checks
-        if: github.ref != 'refs/heads/main' # We don't want to run checks on main branch pushes
-        run: |
-          set +e # Disable exit on error
-          npx checkly test --config=$(find . -name checkly.config.ts) -e ENVIRONMENT_URL=https://${{ env.FEATURE_BRANCH_NAME }}.${{ inputs.QA_SITE_DOMAIN }} --reporter=github --record
-          exit_code=$?
-          set -e # Enable exit on error
-          if [ $exit_code -ne 0 ]; then
-            echo "::error::Checkly checks failed. Please check the checkly-github-report.md in the summary for more details."
-            echo "checkly_failed=true" >> $GITHUB_OUTPUT
+          # GITHUB_HEAD_REF will only be set during a PR
+          if [[ "${GITHUB_HEAD_REF}" != "" ]]; then
+            # This is a pull request
+            BRANCH_NAME=${GITHUB_HEAD_REF#*/}
           else
-            echo "::notice::Checkly checks Passed! Please check the checkly-github-report.md in the summary for more details."
-            echo "checkly_failed=false" >> $GITHUB_OUTPUT
+            # This is the 'main' branch
+            BRANCH_NAME=${GITHUB_REF##*/}
           fi
-          cat checkly-github-report.md > $GITHUB_STEP_SUMMARY
-      - name: Deploy checks # Deploy checks to Checkly for debugging
-        # Only run if the pull request is merging into the main branch
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        id: deploy-checks
-        run: npx checkly deploy --config=$(find . -name checkly.config.ts) --force
-      - name: Add Checkly report comment to PR
-        uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
+
+          # Set environment URLs based on the branch name
+          #
+          # @see https://penskemedia.atlassian.net/wiki/x/IICBW
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            ENVIRONMENT_URL="https://${{ inputs.QA_SITE_DOMAIN }}"
+            HASH_URL="https://${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
+          else
+            ENVIRONMENT_URL="https://${BRANCH_NAME}.${{ inputs.QA_SITE_DOMAIN }}"
+            HASH_URL="https://${BRANCH_NAME}.${{ inputs.QA_SITE_DOMAIN }}/wp-content-vipgo-sites/${BRANCH_NAME}/themes/vip/${{ inputs.THEME_NAME }}/version-hash"
+          fi
+
+          echo "ENVIRONMENT_URL=$ENVIRONMENT_URL" >> $GITHUB_ENV
+          echo "HASH_URL=$HASH_URL" >> $GITHUB_ENV      
+
+      - name: Quality Assurance Testing (QAT)
+        id: qat
+        uses: penske-media-corp/pmc-github-actions/actions/tests/checkly@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('checkly-github-report.md', 'utf8');
-            const checklyFailed = ${{ steps.run-checks.outputs.checkly_failed }};
-            const checklyStatus = checklyFailed ? ':x: Some Playwright tests failed. Please review the Checkly Report to verify no breaking changes were introduced' : ':white_check_mark: All Playwright tests passed. Checkly Report';
-
-            const existingComment = await github.rest.issues.listComments({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-
-            // Delete any existing Checkly Report comments
-            for (const comment of existingComment.data) {
-              if (comment.body.includes('Checkly Report')) {
-                await github.rest.issues.deleteComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  comment_id: comment.id
-                });
-              }
-            };
-
-            // Create a new Checkly Report comment
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `<details><summary>${checklyStatus}:</summary>\n\n${report}</details>`
-            });
+          CHECKLY_ACCOUNT_ID: ${{ secrets.CHECKLY_ACCOUNT_ID }}
+          CHECKLY_API_KEY: ${{ secrets.CHECKLY_API_KEY }}
+          ENVIRONMENT_URL: ${{ env.ENVIRONMENT_URL }}
+          HASH_URL: ${{ env.HASH_URL }}  
