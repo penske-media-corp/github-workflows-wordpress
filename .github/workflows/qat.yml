@@ -19,6 +19,16 @@ on:
         required: false
       CHECKLY_ACCOUNT_ID:
         required: false
+        
+      # these two secrets are added just to support older
+      # themes which have no QAT, but define an older
+      # version of the QAT job, e.g.
+      # https://github.com/penske-media-corp/pmc-soaps-2018/blob/c555da8b7174d5691bf0b66b8a35f0260dc5128a/.github/workflows/pmc.yaml#L67-L72
+      # once those are removed the below secrets may also be removed.
+      BITBUCKET_READ_ONLY_SSH_KEY:
+        required: false
+      GITHUB_READ_ONLY_SSH_KEY:
+        required: false
 
 jobs:
   qat:
