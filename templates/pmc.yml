@@ -36,13 +36,6 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       AZURE_API_KEY: ${{ secrets.AZURE_API_KEY }}
 
-  qat:
-    name: QAT
-    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/qat.yml@main
-    secrets:
-      BITBUCKET_READ_ONLY_SSH_KEY: ${{ secrets.BITBUCKET_READ_ONLY_SSH_KEY }}
-      GITHUB_READ_ONLY_SSH_KEY: ${{ secrets.PMC_GITHUB_ACTION_SSH_KEY }}
-
   unit-tests:
     name: Unit Tests
     uses: penske-media-corp/github-workflows-wordpress/.github/workflows/unit-tests.yml@main
