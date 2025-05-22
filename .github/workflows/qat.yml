@@ -66,7 +66,7 @@ jobs:
 
       - name: Quality Assurance Testing (QAT)
         id: qat
-        uses: penske-media-corp/pmc-github-actions/actions/tests/checkly@main
+        uses: penske-media-corp/pmc-github-actions/actions/tests/checkly@feature/qat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
