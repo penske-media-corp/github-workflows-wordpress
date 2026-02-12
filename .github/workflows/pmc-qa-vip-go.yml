@@ -32,7 +32,7 @@ jobs:
   pmc-qa-vip-go:
     name: "PMC QA VIP Go"
     needs: validate-inputs
-    uses: penske-media-corp/pmc-github-actions/.github/workflows/pmc-qa-vip-go.yml@feature/PUB-447
+    uses: penske-media-corp/pmc-github-actions/.github/workflows/pmc-qa-vip-go.yml@main
     with:
       THEME_NAME: ${{ inputs.THEME_NAME }}
     secrets:
