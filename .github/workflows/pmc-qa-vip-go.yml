@@ -1,0 +1,33 @@
+name: PMC QA VIP Go Deployment
+
+on:
+  workflow_call:
+    inputs:
+      theme:
+        description: 'Theme repository name'
+        required: true
+        type: string
+
+jobs:
+  validate-inputs:
+    name: "Validate Required Inputs"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check theme input
+        run: |
+          if [ -z "${{ inputs.theme }}" ]; then
+            echo "❌ Error: 'theme' input is required but not provided"
+            echo "💡 Please specify the theme parameter when calling this workflow"
+            echo "Example:"
+            echo "  with:"
+            echo "    theme: your-theme-name"
+            exit 1
+          fi
+          echo "✅ Theme input validated: ${{ inputs.theme }}"
+
+  pmc-qa-vip-go:
+    name: "PMC QA VIP Go"
+    needs: validate-inputs
+    uses: penske-media-corp/pmc-github-actions/.github/workflows/pmc-qa-vip-go.yml@feature/PUB-447
+    with:
+      theme: ${{ inputs.theme }}
