@@ -3,7 +3,7 @@ name: PMC QA VIP Go Deployment
 on:
   workflow_call:
     inputs:
-      theme:
+      THEME_NAME:
         description: 'Theme repository name'
         required: true
         type: string
@@ -19,21 +19,21 @@ jobs:
     steps:
       - name: Check theme input
         run: |
-          if [ -z "${{ inputs.theme }}" ]; then
-            echo "❌ Error: 'theme' input is required but not provided"
-            echo "💡 Please specify the theme parameter when calling this workflow"
+          if [ -z "${{ inputs.THEME_NAME }}" ]; then
+            echo "❌ Error: 'THEME_NAME' input is required but not provided"
+            echo "💡 Please specify the THEME_NAME parameter when calling this workflow"
             echo "Example:"
             echo "  with:"
-            echo "    theme: your-theme-name"
+            echo "    THEME_NAME: your-theme-name"
             exit 1
           fi
-          echo "✅ Theme input validated: ${{ inputs.theme }}"
+          echo "✅ Theme input validated: ${{ inputs.THEME_NAME }}"
 
   pmc-qa-vip-go:
     name: "PMC QA VIP Go"
     needs: validate-inputs
     uses: penske-media-corp/pmc-github-actions/.github/workflows/pmc-qa-vip-go.yml@feature/PUB-447
     with:
-      theme: ${{ inputs.theme }}
+      THEME_NAME: ${{ inputs.THEME_NAME }}
     secrets:
       JENKINS_BUILD_TOKEN: ${{ secrets.JENKINS_BUILD_TOKEN }}
