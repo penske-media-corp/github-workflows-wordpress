@@ -7,6 +7,21 @@ on:
         description: 'If the theme is a vip theme'
         required: true
         type: boolean
+      PHP_VERSION:
+        description: 'PHP version to use for tests'
+        required: false
+        type: string
+        default: '8.2'
+      WORDPRESS_VERSION:
+        description: 'WordPress version to use for tests'
+        required: false
+        type: string
+        default: '6.7'
+      JETPACK_VERSION:
+        description: 'Jetpack version tag to pin (e.g. 15.4 for WP 6.7, 15.5 for WP 6.8). If empty, uses the version bundled with VIP Go mu-plugins.'
+        required: false
+        type: string
+        default: ''
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
@@ -66,12 +81,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '8.2'
-            wordpress: '6.7'
+          - php: ${{ inputs.PHP_VERSION }}
+            wordpress: ${{ inputs.WORDPRESS_VERSION }}
+            jetpack: ${{ inputs.JETPACK_VERSION }}
             check_code_coverage: true
             continue_on_error: false
-            job_label_php: 'current'
-            job_label_wordpress: 'latest'
+            job_label_php: ${{ inputs.PHP_VERSION }}
+            job_label_wordpress: ${{ inputs.WORDPRESS_VERSION }}
 
     steps:
       - name: Prepare environment
@@ -84,6 +100,23 @@ jobs:
           phpunit: 1
           vip_theme: ${{ inputs.VIP_THEME }}
           wordpress_version: ${{ matrix.wordpress }}
+
+      - name: Pin Jetpack version
+        if: ${{ matrix.jetpack != '' }}
+        run: |
+          # Pin VIP Go mu-plugins to load a specific Jetpack version.
+          # The bundled jetpack.php loader respects VIP_JETPACK_PINNED_VERSION
+          # and will load from jetpack-{version}/ directory if available.
+          WP_CONFIG_PATH="${WP_TESTS_DIR}/wp-tests-config.php"
+          echo "define( 'VIP_JETPACK_PINNED_VERSION', '${{ matrix.jetpack }}' );" >> "${WP_CONFIG_PATH}"
+          echo "Pinned Jetpack to version ${{ matrix.jetpack }}"
+
+          # Verify the versioned directory exists in mu-plugins.
+          JETPACK_DIR="${WP_CORE_DIR}/wp-content/mu-plugins/jetpack-${{ matrix.jetpack }}"
+          if [[ ! -d "${JETPACK_DIR}" ]]; then
+            echo "::warning::Jetpack version ${{ matrix.jetpack }} directory not found at ${JETPACK_DIR}. Available versions:"
+            ls -d ${WP_CORE_DIR}/wp-content/mu-plugins/jetpack* 2>/dev/null || echo "No jetpack directories found"
+          fi
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}

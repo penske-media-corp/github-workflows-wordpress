@@ -2,6 +2,12 @@ name: Linting
 
 on:
   workflow_call:
+    inputs:
+      PHP_VERSION:
+        description: 'PHP version to use for PHP linting'
+        required: false
+        type: string
+        default: '8.2'
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
@@ -26,9 +32,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '8.2'
+          - php: ${{ inputs.PHP_VERSION }}
             continue_on_error: false
-            job_label: 'current'
+            job_label: ${{ inputs.PHP_VERSION }}
 
     steps:
       - name: Prepare environment
