@@ -102,25 +102,35 @@ jobs:
           wordpress_version: ${{ matrix.wordpress }}
 
       - name: Pin Jetpack version
-        if: ${{ matrix.jetpack != '' }}
         run: |
+          # Determine Jetpack version: use explicit input, or auto-detect from WP version.
+          JETPACK_VERSION="${{ matrix.jetpack }}"
+          if [[ -z "${JETPACK_VERSION}" ]]; then
+            # TODO: Remove this WP 6.7 auto-detection once all theme repos are upgraded to WP 6.8+.
+            case "${{ matrix.wordpress }}" in
+              6.7*) JETPACK_VERSION="15.4" ;;
+              *)    echo "No Jetpack pinning needed for WP ${{ matrix.wordpress }}, using bundled version."; exit 0 ;;
+            esac
+            echo "Auto-detected Jetpack ${JETPACK_VERSION} for WP ${{ matrix.wordpress }}"
+          fi
+
           MU_PLUGINS_DIR="${WP_CORE_DIR}/wp-content/mu-plugins"
-          JETPACK_DIR="${MU_PLUGINS_DIR}/jetpack-${{ matrix.jetpack }}"
+          JETPACK_DIR="${MU_PLUGINS_DIR}/jetpack-${JETPACK_VERSION}"
 
           # Download the pinned Jetpack version if its directory doesn't already exist.
           if [[ ! -d "${JETPACK_DIR}" ]]; then
-            echo "Downloading Jetpack ${{ matrix.jetpack }} from jetpack-production..."
-            curl -sL "https://github.com/Automattic/jetpack-production/archive/refs/tags/${{ matrix.jetpack }}.tar.gz" -o /tmp/jetpack.tar.gz
+            echo "Downloading Jetpack ${JETPACK_VERSION} from jetpack-production..."
+            curl -sL "https://github.com/Automattic/jetpack-production/archive/refs/tags/${JETPACK_VERSION}.tar.gz" -o /tmp/jetpack.tar.gz
             mkdir -p "${JETPACK_DIR}"
             tar -xzf /tmp/jetpack.tar.gz --strip-components=1 -C "${JETPACK_DIR}"
             rm /tmp/jetpack.tar.gz
-            echo "Installed Jetpack ${{ matrix.jetpack }} to ${JETPACK_DIR}"
+            echo "Installed Jetpack ${JETPACK_VERSION} to ${JETPACK_DIR}"
           fi
 
           # Tell the VIP Go mu-plugins loader to use this version.
           WP_CONFIG_PATH="${WP_TESTS_DIR}/wp-tests-config.php"
-          echo "define( 'VIP_JETPACK_PINNED_VERSION', '${{ matrix.jetpack }}' );" >> "${WP_CONFIG_PATH}"
-          echo "Pinned Jetpack to version ${{ matrix.jetpack }}"
+          echo "define( 'VIP_JETPACK_PINNED_VERSION', '${JETPACK_VERSION}' );" >> "${WP_CONFIG_PATH}"
+          echo "Pinned Jetpack to version ${JETPACK_VERSION}"
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
