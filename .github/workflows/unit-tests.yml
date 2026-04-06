@@ -104,19 +104,23 @@ jobs:
       - name: Pin Jetpack version
         if: ${{ matrix.jetpack != '' }}
         run: |
-          # Pin VIP Go mu-plugins to load a specific Jetpack version.
-          # The bundled jetpack.php loader respects VIP_JETPACK_PINNED_VERSION
-          # and will load from jetpack-{version}/ directory if available.
+          MU_PLUGINS_DIR="${WP_CORE_DIR}/wp-content/mu-plugins"
+          JETPACK_DIR="${MU_PLUGINS_DIR}/jetpack-${{ matrix.jetpack }}"
+
+          # Download the pinned Jetpack version if its directory doesn't already exist.
+          if [[ ! -d "${JETPACK_DIR}" ]]; then
+            echo "Downloading Jetpack ${{ matrix.jetpack }} from jetpack-production..."
+            curl -sL "https://github.com/Automattic/jetpack-production/archive/refs/tags/${{ matrix.jetpack }}.tar.gz" -o /tmp/jetpack.tar.gz
+            mkdir -p "${JETPACK_DIR}"
+            tar -xzf /tmp/jetpack.tar.gz --strip-components=1 -C "${JETPACK_DIR}"
+            rm /tmp/jetpack.tar.gz
+            echo "Installed Jetpack ${{ matrix.jetpack }} to ${JETPACK_DIR}"
+          fi
+
+          # Tell the VIP Go mu-plugins loader to use this version.
           WP_CONFIG_PATH="${WP_TESTS_DIR}/wp-tests-config.php"
           echo "define( 'VIP_JETPACK_PINNED_VERSION', '${{ matrix.jetpack }}' );" >> "${WP_CONFIG_PATH}"
           echo "Pinned Jetpack to version ${{ matrix.jetpack }}"
-
-          # Verify the versioned directory exists in mu-plugins.
-          JETPACK_DIR="${WP_CORE_DIR}/wp-content/mu-plugins/jetpack-${{ matrix.jetpack }}"
-          if [[ ! -d "${JETPACK_DIR}" ]]; then
-            echo "::warning::Jetpack version ${{ matrix.jetpack }} directory not found at ${JETPACK_DIR}. Available versions:"
-            ls -d ${WP_CORE_DIR}/wp-content/mu-plugins/jetpack* 2>/dev/null || echo "No jetpack directories found"
-          fi
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
