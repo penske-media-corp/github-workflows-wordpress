@@ -86,8 +86,10 @@ jobs:
             jetpack: ${{ inputs.JETPACK_VERSION }}
             check_code_coverage: true
             continue_on_error: false
-            job_label_php: ${{ inputs.PHP_VERSION }}
-            job_label_wordpress: ${{ inputs.WORDPRESS_VERSION }}
+            # Use stable labels so dependent repos can rely on fixed required check names
+            # in GitHub branch protection (e.g. "Unit Tests / PHP: current, WP: latest").
+            job_label_php: current
+            job_label_wordpress: latest
 
     steps:
       - name: Prepare environment

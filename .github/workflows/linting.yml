@@ -34,7 +34,9 @@ jobs:
         include:
           - php: ${{ inputs.PHP_VERSION }}
             continue_on_error: false
-            job_label: ${{ inputs.PHP_VERSION }}
+            # Use stable label so dependent repos can rely on a fixed required check name
+            # in GitHub branch protection (e.g. "Linting / PHP: current").
+            job_label: current
 
     steps:
       - name: Prepare environment
