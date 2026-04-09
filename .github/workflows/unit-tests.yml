@@ -7,6 +7,21 @@ on:
         description: 'If the theme is a vip theme'
         required: true
         type: boolean
+      PHP_VERSION:
+        description: 'PHP version to use for tests'
+        required: false
+        type: string
+        default: '8.2'
+      WORDPRESS_VERSION:
+        description: 'WordPress version to use for tests'
+        required: false
+        type: string
+        default: '6.7'
+      JETPACK_VERSION:
+        description: 'Jetpack version tag to pin (e.g. 15.4 for WP 6.7, 15.5 for WP 6.8). If empty, uses the version bundled with VIP Go mu-plugins.'
+        required: false
+        type: string
+        default: ''
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
@@ -66,12 +81,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php: '8.2'
-            wordpress: '6.7'
+          - php: ${{ inputs.PHP_VERSION }}
+            wordpress: ${{ inputs.WORDPRESS_VERSION }}
+            jetpack: ${{ inputs.JETPACK_VERSION }}
             check_code_coverage: true
             continue_on_error: false
-            job_label_php: 'current'
-            job_label_wordpress: 'latest'
+            job_label_php: ${{ inputs.PHP_VERSION }}
+            job_label_wordpress: ${{ inputs.WORDPRESS_VERSION }}
 
     steps:
       - name: Prepare environment
@@ -84,6 +100,37 @@ jobs:
           phpunit: 1
           vip_theme: ${{ inputs.VIP_THEME }}
           wordpress_version: ${{ matrix.wordpress }}
+
+      - name: Pin Jetpack version
+        run: |
+          # Determine Jetpack version: use explicit input, or auto-detect from WP version.
+          JETPACK_VERSION="${{ matrix.jetpack }}"
+          if [[ -z "${JETPACK_VERSION}" ]]; then
+            # TODO: Remove this WP 6.7 auto-detection once all theme repos are upgraded to WP 6.8+.
+            case "${{ matrix.wordpress }}" in
+              6.7*) JETPACK_VERSION="15.4" ;;
+              *)    echo "No Jetpack pinning needed for WP ${{ matrix.wordpress }}, using bundled version."; exit 0 ;;
+            esac
+            echo "Auto-detected Jetpack ${JETPACK_VERSION} for WP ${{ matrix.wordpress }}"
+          fi
+
+          MU_PLUGINS_DIR="${WP_CORE_DIR}/wp-content/mu-plugins"
+          JETPACK_DIR="${MU_PLUGINS_DIR}/jetpack-${JETPACK_VERSION}"
+
+          # Download the pinned Jetpack version if its directory doesn't already exist.
+          if [[ ! -d "${JETPACK_DIR}" ]]; then
+            echo "Downloading Jetpack ${JETPACK_VERSION} from jetpack-production..."
+            curl -sL "https://github.com/Automattic/jetpack-production/archive/refs/tags/${JETPACK_VERSION}.tar.gz" -o /tmp/jetpack.tar.gz
+            mkdir -p "${JETPACK_DIR}"
+            tar -xzf /tmp/jetpack.tar.gz --strip-components=1 -C "${JETPACK_DIR}"
+            rm /tmp/jetpack.tar.gz
+            echo "Installed Jetpack ${JETPACK_VERSION} to ${JETPACK_DIR}"
+          fi
+
+          # Tell the VIP Go mu-plugins loader to use this version.
+          WP_CONFIG_PATH="${WP_TESTS_DIR}/wp-tests-config.php"
+          echo "define( 'VIP_JETPACK_PINNED_VERSION', '${JETPACK_VERSION}' );" >> "${WP_CONFIG_PATH}"
+          echo "Pinned Jetpack to version ${JETPACK_VERSION}"
 
       - name: Run PHPUnit
         continue-on-error: ${{ matrix.continue_on_error }}
