@@ -7,7 +7,7 @@ on:
         description: 'PHP version to use for PHP linting'
         required: false
         type: string
-        default: '8.2'
+        default: '8.4'
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
         required: true
