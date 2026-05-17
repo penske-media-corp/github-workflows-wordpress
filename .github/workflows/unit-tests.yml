@@ -11,17 +11,17 @@ on:
         description: 'PHP version to use for tests'
         required: false
         type: string
-        default: '8.2'
+        default: '8.4'
       WORDPRESS_VERSION:
         description: 'WordPress version to use for tests'
         required: false
         type: string
-        default: '6.7'
+        default: '6.9.4'
       JETPACK_VERSION:
         description: 'Jetpack version tag to pin (e.g. 15.4 for WP 6.7, 15.5 for WP 6.8). If empty, uses the version bundled with VIP Go mu-plugins.'
         required: false
         type: string
-        default: ''
+        default: '15.7.1'
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
