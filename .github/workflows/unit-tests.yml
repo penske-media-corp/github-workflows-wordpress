@@ -21,7 +21,7 @@ on:
         description: 'Jetpack version tag to pin (e.g. 15.4 for WP 6.7, 15.5 for WP 6.8). If empty, uses the version bundled with VIP Go mu-plugins.'
         required: false
         type: string
-        default: '15.7.1'
+        default: ''
 
     secrets:
       BITBUCKET_READ_ONLY_SSH_KEY:
