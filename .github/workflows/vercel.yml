@@ -51,7 +51,7 @@ jobs:
             echo "github-comment=true" >> $GITHUB_OUTPUT
             echo "vercel-args=" >> $GITHUB_OUTPUT
           fi
-      - uses: amondnet/vercel-action@v25
+      - uses: amondnet/vercel-action@v42
         name: Build & Deploy
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -67,6 +67,6 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          VERCEL_CMD="npx vercel@32.1.0 --no-color --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }}"
+          VERCEL_CMD="npx vercel@latest --no-color --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }}"
           DEPLOY_URL=$($VERCEL_CMD ls ${{ inputs.VERCEL_PROJECT_NAME }} --meta githubCommitSha=${{ github.sha }} | grep -Eo "https://${{ inputs.VERCEL_PROJECT_NAME }}-([^-]+)-${{ inputs.VERCEL_ORG_SlUG }}.vercel.app" )
           $VERCEL_CMD logs --output raw --limit 1000 $DEPLOY_URL
