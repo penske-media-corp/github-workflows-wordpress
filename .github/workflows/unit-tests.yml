@@ -252,6 +252,12 @@ jobs:
             echo "sonar.php.coverage.reportPaths=" >> "./sonar-project.properties"
           fi
 
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin' # You can also use 'zulu' or 'corretto'
+
       - name: Analyze with SonarCloud
         uses: SonarSource/sonarqube-scan-action@master
         env:
