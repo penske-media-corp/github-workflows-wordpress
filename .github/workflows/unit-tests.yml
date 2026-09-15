@@ -108,9 +108,15 @@ jobs:
           # Determine Jetpack version: use explicit input, or auto-detect from WP version.
           JETPACK_VERSION="${{ matrix.jetpack }}"
           if [[ -z "${JETPACK_VERSION}" ]]; then
-            # TODO: Remove this WP 6.7 auto-detection once all theme repos are upgraded to WP 6.8+.
+            # Jetpack's own minimum-WP requirement keeps climbing (16.2+ needs WP 7.0), so the
+            # version bundled in vip-go-mu-plugins-built can silently outpace whatever WP version
+            # this workflow pins for tests, breaking every Jetpack-gated code path with a silent
+            # bootstrap failure. Keep this table current with the newest Jetpack release that
+            # still supports each WP version we test against.
             case "${{ matrix.wordpress }}" in
               6.7*) JETPACK_VERSION="15.4" ;;
+              6.8*) JETPACK_VERSION="15.8" ;;
+              6.9*) JETPACK_VERSION="16.1" ;;
               *)    echo "No Jetpack pinning needed for WP ${{ matrix.wordpress }}, using bundled version."; exit 0 ;;
             esac
             echo "Auto-detected Jetpack ${JETPACK_VERSION} for WP ${{ matrix.wordpress }}"
