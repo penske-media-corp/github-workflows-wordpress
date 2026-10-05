@@ -35,11 +35,11 @@ git fetch origin "${DEFAULT_BRANCH}" >/dev/null 2>&1
 for file in $(
   if [[ -z "${JS_IGNORE_PATTERNS}" ]]; then
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*.js' '*.ts' '*.jsx' '*.tsx' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+      -- '*.js' '*.ts' '*.jsx' '*.tsx' ':!/vendor/' ':!/.cache/' ':!/node_modules/' ':!/build/' ':!*/build/*' \
       | grep -E '\.jsx?$'
   else
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*.js' '*.ts' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+      -- '*.js' '*.ts' ':!/vendor/' ':!/.cache/' ':!/node_modules/' ':!/build/' ':!*/build/*' \
       | grep -E '\.jsx?$' \
       | grep -v -E "${JS_IGNORE_PATTERNS}"
   fi
@@ -63,10 +63,10 @@ done
 for package_json in $(
   if [[ -z "${JS_IGNORE_PATTERNS}" ]]; then
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*/package.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/'
+      -- '*/package.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/' ':!/build/' ':!*/build/*'
   else
     git --no-pager diff --diff-filter=A "origin/${DEFAULT_BRANCH}" --name-only \
-      -- '*/package.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/' \
+      -- '*/package.json' ':!/vendor/' ':!/.cache/' ':!/node_modules/' ':!/build/' ':!*/build/*' \
       | grep -v -E "${JS_IGNORE_PATTERNS}"
   fi
 ); do
