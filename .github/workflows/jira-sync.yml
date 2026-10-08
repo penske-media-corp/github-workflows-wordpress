@@ -55,7 +55,7 @@ jobs:
 
           payload=$(jq -n \
             --arg project "$PROJECT_KEY" --arg type "$ISSUE_TYPE" \
-            --arg summary "$PR_TITLE" --arg url "$PR_URL" '{
+            --arg summary "ENG Auto maintenance: $PR_TITLE" --arg url "$PR_URL" '{
               fields: {
                 project: {key: $project},
                 issuetype: {name: $type},
