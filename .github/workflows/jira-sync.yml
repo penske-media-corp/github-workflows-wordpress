@@ -60,6 +60,7 @@ jobs:
                 project: {key: $project},
                 issuetype: {name: $type},
                 summary: $summary,
+                labels: ["Auto-maintenance"],
                 description: {type: "doc", version: 1, content: [
                   {type: "paragraph", content: [
                     {type: "text", text: "Pull request: "},
