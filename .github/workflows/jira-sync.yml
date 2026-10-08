@@ -1,0 +1,109 @@
+name: PMC Jira Sync
+
+on:
+  workflow_call:
+    inputs:
+      trigger_label:
+        type: string
+        default: 'PrincipalWP Optimizer'
+      project_key:
+        type: string
+        default: 'PUB'
+      issue_type:
+        type: string
+        default: 'Task'
+      done_transition:
+        type: string
+        default: 'Done'
+    secrets:
+      JIRA_API_TOKEN:
+        required: true
+      JIRA_EMAIL:
+        required: true
+      JIRA_CLOUD_ID:
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  JIRA_API: https://api.atlassian.com/ex/jira/${{ secrets.JIRA_CLOUD_ID }}/rest/api/3
+  JIRA_AUTH: ${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}
+  GH_TOKEN: ${{ github.token }}
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+
+jobs:
+  create-ticket:
+    name: Create Jira ticket
+    if: github.event.action == 'labeled' && github.event.label.name == inputs.trigger_label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Jira ticket unless one already exists
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PROJECT_KEY: ${{ inputs.project_key }}
+          ISSUE_TYPE: ${{ inputs.issue_type }}
+        run: |
+          existing=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[] | select(.body | contains("<!-- jira-key:")) | .id' | head -n1)
+          if [ -n "$existing" ]; then
+            echo "Ticket already linked; skipping."
+            exit 0
+          fi
+
+          payload=$(jq -n \
+            --arg project "$PROJECT_KEY" --arg type "$ISSUE_TYPE" \
+            --arg summary "$PR_TITLE" --arg url "$PR_URL" '{
+              fields: {
+                project: {key: $project},
+                issuetype: {name: $type},
+                summary: $summary,
+                description: {type: "doc", version: 1, content: [
+                  {type: "paragraph", content: [
+                    {type: "text", text: "Pull request: "},
+                    {type: "text", text: $url, marks: [{type: "link", attrs: {href: $url}}]}
+                  ]}
+                ]}
+              }}')
+
+          response=$(curl -sS --fail-with-body -u "$JIRA_AUTH" \
+            -H 'Content-Type: application/json' -X POST \
+            -d "$payload" "$JIRA_API/issue")
+          key=$(echo "$response" | jq -r '.key')
+          if [ -z "$key" ] || [ "$key" = "null" ]; then
+            echo "No issue key returned from Jira"
+            exit 1
+          fi
+
+          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" \
+            --body "Jira ticket created: **$key**
+          <!-- jira-key:$key -->"
+
+  transition-ticket:
+    name: Move Jira ticket to Done
+    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move linked ticket to Done
+        env:
+          DONE_NAME: ${{ inputs.done_transition }}
+        run: |
+          key=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[].body' | grep -o 'jira-key:[A-Z][A-Z0-9]*-[0-9]*' | head -n1 | cut -d: -f2)
+          if [ -z "$key" ]; then
+            echo "No linked ticket; nothing to do."
+            exit 0
+          fi
+
+          tid=$(curl -sS --fail-with-body -u "$JIRA_AUTH" "$JIRA_API/issue/$key/transitions" \
+            | jq -r --arg n "$DONE_NAME" '.transitions[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' | head -n1)
+          if [ -z "$tid" ]; then
+            echo "No '$DONE_NAME' transition available for $key (already Done?)."
+            exit 0
+          fi
+
+          curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' -X POST \
+            -d "$(jq -n --arg id "$tid" '{transition: {id: $id}}')" \
+            "$JIRA_API/issue/$key/transitions"
