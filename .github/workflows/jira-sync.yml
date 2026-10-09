@@ -15,6 +15,12 @@ on:
       done_transition:
         type: string
         default: 'Done'
+      declined_transition:
+        type: string
+        default: "Won't Do"
+      summary_prefix:
+        type: string
+        default: 'ENG Auto maintenance: '
     secrets:
       JIRA_API_TOKEN:
         required: true
@@ -36,7 +42,10 @@ env:
 jobs:
   create-ticket:
     name: Create Jira ticket
-    if: github.event.action == 'labeled' && github.event.label.name == inputs.trigger_label
+    if: >-
+      github.event.action == 'labeled' &&
+      github.event.label.name == inputs.trigger_label &&
+      github.event.pull_request.state == 'open'
     runs-on: ubuntu-latest
     steps:
       - name: Create Jira ticket unless one already exists
@@ -45,9 +54,10 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           PROJECT_KEY: ${{ inputs.project_key }}
           ISSUE_TYPE: ${{ inputs.issue_type }}
+          SUMMARY_PREFIX: ${{ inputs.summary_prefix }}
         run: |
           existing=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" --paginate \
-            --jq '.[] | select(.body | contains("<!-- jira-key:")) | .id' | head -n1)
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- jira-key:"))) | .id' | head -n1)
           if [ -n "$existing" ]; then
             echo "Ticket already linked; skipping."
             exit 0
@@ -55,11 +65,11 @@ jobs:
 
           payload=$(jq -n \
             --arg project "$PROJECT_KEY" --arg type "$ISSUE_TYPE" \
-            --arg summary "ENG Auto maintenance: $PR_TITLE" --arg url "$PR_URL" '{
+            --arg prefix "$SUMMARY_PREFIX" --arg title "$PR_TITLE" --arg url "$PR_URL" '{
               fields: {
                 project: {key: $project},
                 issuetype: {name: $type},
-                summary: $summary,
+                summary: (($prefix + $title) | .[0:255]),
                 labels: ["Auto-maintenance"],
                 description: {type: "doc", version: 1, content: [
                   {type: "paragraph", content: [
@@ -82,29 +92,52 @@ jobs:
             --body "Jira ticket created: **$key**
           <!-- jira-key:$key -->"
 
-  transition-ticket:
-    name: Move Jira ticket to Done
-    if: github.event.action == 'closed' && github.event.pull_request.merged == true
+  close-ticket:
+    name: Close Jira ticket
+    if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - name: Move linked ticket to Done
+      - name: Move linked ticket to Done (merged) or Won't Do (closed unmerged)
         env:
+          MERGED: ${{ github.event.pull_request.merged }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PROJECT_KEY: ${{ inputs.project_key }}
           DONE_NAME: ${{ inputs.done_transition }}
+          DECLINED_NAME: ${{ inputs.declined_transition }}
         run: |
           key=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" --paginate \
-            --jq '.[].body' | grep -o 'jira-key:[A-Z][A-Z0-9]*-[0-9]*' | head -n1 | cut -d: -f2)
+            --jq '.[] | select(.user.login == "github-actions[bot]") | .body' \
+            | grep -oE "<!-- jira-key:${PROJECT_KEY}-[0-9]+ -->" | head -n1 \
+            | sed -E 's/.*jira-key:([^ ]+) .*/\1/')
           if [ -z "$key" ]; then
             echo "No linked ticket; nothing to do."
             exit 0
           fi
 
+          if [ "$MERGED" = "true" ]; then
+            target="$DONE_NAME"
+          else
+            target="$DECLINED_NAME"
+          fi
+
           tid=$(curl -sS --fail-with-body -u "$JIRA_AUTH" "$JIRA_API/issue/$key/transitions" \
-            | jq -r --arg n "$DONE_NAME" '.transitions[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' | head -n1)
-          if [ -z "$tid" ]; then
-            echo "No '$DONE_NAME' transition available for $key (already Done?)."
+            | jq -r --arg n "$target" '.transitions[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' | head -n1)
+
+          if [ -n "$tid" ]; then
+            curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' -X POST \
+              -d "$(jq -n --arg id "$tid" '{transition: {id: $id}}')" \
+              "$JIRA_API/issue/$key/transitions"
             exit 0
           fi
 
-          curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' -X POST \
-            -d "$(jq -n --arg id "$tid" '{transition: {id: $id}}')" \
-            "$JIRA_API/issue/$key/transitions"
+          echo "No '$target' transition available for $key."
+          if [ "$MERGED" != "true" ]; then
+            body=$(jq -n --arg url "$PR_URL" '{body: {type: "doc", version: 1, content: [
+              {type: "paragraph", content: [
+                {type: "text", text: "Pull request was closed without merging: "},
+                {type: "text", text: $url, marks: [{type: "link", attrs: {href: $url}}]}
+              ]}
+            ]}}')
+            curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' -X POST \
+              -d "$body" "$JIRA_API/issue/$key/comment"
+          fi
