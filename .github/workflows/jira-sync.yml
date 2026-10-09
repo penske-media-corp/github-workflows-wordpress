@@ -32,7 +32,7 @@ on:
       business_area:
         description: 'PUB "Brand / Business Area" (customfield_10049, required select). Single option value.'
         type: string
-        default: 'Core Tech/ Product'
+        default: 'Engineering'
     secrets:
       JIRA_API_TOKEN:
         required: true
