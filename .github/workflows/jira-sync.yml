@@ -21,6 +21,10 @@ on:
       summary_prefix:
         type: string
         default: 'ENG Auto maintenance: '
+      labels_field:
+        description: 'Jira field id that receives the Auto-maintenance label. PUB has no system Labels field on its create screens; its label-type "Tags" field is customfield_10057.'
+        type: string
+        default: 'customfield_10057'
     secrets:
       JIRA_API_TOKEN:
         required: true
@@ -55,6 +59,7 @@ jobs:
           PROJECT_KEY: ${{ inputs.project_key }}
           ISSUE_TYPE: ${{ inputs.issue_type }}
           SUMMARY_PREFIX: ${{ inputs.summary_prefix }}
+          LABELS_FIELD: ${{ inputs.labels_field }}
         run: |
           existing=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" --paginate \
             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- jira-key:"))) | .id' | head -n1)
@@ -65,12 +70,13 @@ jobs:
 
           payload=$(jq -n \
             --arg project "$PROJECT_KEY" --arg type "$ISSUE_TYPE" \
+            --arg labels_field "$LABELS_FIELD" \
             --arg prefix "$SUMMARY_PREFIX" --arg title "$PR_TITLE" --arg url "$PR_URL" '{
               fields: {
                 project: {key: $project},
                 issuetype: {name: $type},
                 summary: (($prefix + $title) | .[0:255]),
-                labels: ["Auto-maintenance"],
+                ($labels_field): ["Auto-maintenance"],
                 description: {type: "doc", version: 1, content: [
                   {type: "paragraph", content: [
                     {type: "text", text: "Pull request: "},
@@ -79,10 +85,16 @@ jobs:
                 ]}
               }}')
 
-          response=$(curl -sS --fail-with-body -u "$JIRA_AUTH" \
+          http_code=$(curl -sS -o "$RUNNER_TEMP/jira-response.json" -w '%{http_code}' -u "$JIRA_AUTH" \
             -H 'Content-Type: application/json' -X POST \
             -d "$payload" "$JIRA_API/issue")
-          key=$(echo "$response" | jq -r '.key')
+          if [ "$http_code" -ge 300 ]; then
+            echo "Jira returned HTTP $http_code creating the issue:"
+            cat "$RUNNER_TEMP/jira-response.json"
+            echo
+            exit 1
+          fi
+          key=$(jq -r '.key' "$RUNNER_TEMP/jira-response.json")
           if [ -z "$key" ] || [ "$key" = "null" ]; then
             echo "No issue key returned from Jira"
             exit 1
