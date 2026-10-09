@@ -25,6 +25,14 @@ on:
         description: 'Jira field id that receives the Auto-maintenance label. PUB has no system Labels field on its create screens; its label-type "Tags" field is customfield_10057.'
         type: string
         default: 'customfield_10057'
+      brands_affected:
+        description: 'PUB "Brands Affected" (customfield_10046, required multi-select). Comma-separated option values.'
+        type: string
+        default: 'Core Theme / Core Tech'
+      business_area:
+        description: 'PUB "Brand / Business Area" (customfield_10049, required select). Single option value.'
+        type: string
+        default: 'Engineering'
     secrets:
       JIRA_API_TOKEN:
         required: true
@@ -60,6 +68,8 @@ jobs:
           ISSUE_TYPE: ${{ inputs.issue_type }}
           SUMMARY_PREFIX: ${{ inputs.summary_prefix }}
           LABELS_FIELD: ${{ inputs.labels_field }}
+          BRANDS_AFFECTED: ${{ inputs.brands_affected }}
+          BUSINESS_AREA: ${{ inputs.business_area }}
         run: |
           existing=$(gh api "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" --paginate \
             --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("<!-- jira-key:"))) | .id' | head -n1)
@@ -71,12 +81,15 @@ jobs:
           payload=$(jq -n \
             --arg project "$PROJECT_KEY" --arg type "$ISSUE_TYPE" \
             --arg labels_field "$LABELS_FIELD" \
+            --arg brands "$BRANDS_AFFECTED" --arg area "$BUSINESS_AREA" \
             --arg prefix "$SUMMARY_PREFIX" --arg title "$PR_TITLE" --arg url "$PR_URL" '{
               fields: {
                 project: {key: $project},
                 issuetype: {name: $type},
                 summary: (($prefix + $title) | .[0:255]),
                 ($labels_field): ["Auto-maintenance"],
+                customfield_10046: ($brands | split(",") | map({value: (. | gsub("^\\s+|\\s+$"; ""))})),
+                customfield_10049: {value: $area},
                 description: {type: "doc", version: 1, content: [
                   {type: "paragraph", content: [
                     {type: "text", text: "Pull request: "},
