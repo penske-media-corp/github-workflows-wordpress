@@ -35,3 +35,8 @@ alone if it is already closed or another open PR still references it.
 It runs as a dry run until the consuming repository sets the
 `STALE_PRS_LIVE` variable to `true`. See [the template](./templates/pmc-stale-prs.yml).
 Each run is capped by `operations_per_run`, so a large backlog is processed in batches.
+
+A dry run labels, comments on, and closes nothing. Its job summary lists every PR
+that would be closed and what would happen to its ticket. Dry runs don't save
+progress between runs and use about 6 operations per PR, so raise
+`operations_per_run` on a manual run to cover the whole backlog.
