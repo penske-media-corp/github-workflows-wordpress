@@ -1,0 +1,231 @@
+name: PMC Stale PRs
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: 'Log what would happen without touching GitHub or Jira.'
+        type: boolean
+        default: true
+      days_before_stale:
+        type: number
+        default: 45
+      days_before_close:
+        type: number
+        default: 7
+      stale_label:
+        type: string
+        default: 'stale'
+      exempt_labels:
+        description: 'Comma-separated PR labels that are never marked stale.'
+        type: string
+        default: 'keep-open'
+      operations_per_run:
+        description: 'GitHub API operation budget per run; limits how many PRs are processed in one batch.'
+        type: number
+        default: 100
+      project_key:
+        type: string
+        default: 'PUB'
+      resolve_transition:
+        description: 'Transition that moves an open ticket to the intermediate done state.'
+        type: string
+        default: 'Resolved'
+      close_transition:
+        description: 'Transition that closes a resolved ticket; must accept a resolution.'
+        type: string
+        default: 'Closed'
+      resolution:
+        type: string
+        default: "Won't Do"
+      jira_labels:
+        description: 'Comma-separated labels added to the linked ticket.'
+        type: string
+        default: 'stale-pr-closed,exclude-from-productivity-report'
+      labels_field:
+        description: 'Jira field id that receives the labels. PUB uses its label-type "Tags" field, customfield_10057.'
+        type: string
+        default: 'customfield_10057'
+    secrets:
+      JIRA_API_TOKEN:
+        required: true
+      JIRA_EMAIL:
+        required: true
+      JIRA_CLOUD_ID:
+        required: true
+
+permissions:
+  actions: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  mark-stale:
+    name: Mark and close stale PRs
+    runs-on: ubuntu-latest
+    outputs:
+      closed: ${{ steps.stale.outputs.closed-issues-prs }}
+    steps:
+      - id: stale
+        uses: actions/stale@v11
+        with:
+          debug-only: ${{ inputs.dry_run }}
+          days-before-issue-stale: -1
+          days-before-issue-close: -1
+          days-before-pr-stale: ${{ inputs.days_before_stale }}
+          days-before-pr-close: ${{ inputs.days_before_close }}
+          stale-pr-label: ${{ inputs.stale_label }}
+          exempt-pr-labels: ${{ inputs.exempt_labels }}
+          operations-per-run: ${{ inputs.operations_per_run }}
+          ascending: true
+          stale-pr-message: >-
+            This PR has had no activity for ${{ inputs.days_before_stale }} days and will be closed in
+            ${{ inputs.days_before_close }} days. Push a commit, comment, or add the `keep-open` label to keep it open.
+            When it closes, the linked ${{ inputs.project_key }} ticket will be closed as ${{ inputs.resolution }}.
+          close-pr-message: >-
+            Closed after ${{ inputs.days_before_stale }} days of inactivity. Reopen it if the work is still needed.
+
+  close-jira-tickets:
+    name: Close linked Jira tickets
+    needs: mark-stale
+    if: needs.mark-stale.outputs.closed != '' && needs.mark-stale.outputs.closed != '[]'
+    runs-on: ubuntu-latest
+    env:
+      JIRA_API: https://api.atlassian.com/ex/jira/${{ secrets.JIRA_CLOUD_ID }}/rest/api/3
+      JIRA_AUTH: ${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      CLOSED_JSON: ${{ needs.mark-stale.outputs.closed }}
+      DRY_RUN: ${{ inputs.dry_run }}
+      PROJECT_KEY: ${{ inputs.project_key }}
+      RESOLVE_NAME: ${{ inputs.resolve_transition }}
+      CLOSE_NAME: ${{ inputs.close_transition }}
+      RESOLUTION: ${{ inputs.resolution }}
+      JIRA_LABELS: ${{ inputs.jira_labels }}
+      LABELS_FIELD: ${{ inputs.labels_field }}
+    steps:
+      - name: Close each linked ticket as ${{ inputs.resolution }}
+        run: |
+          jira() {
+            curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' "$@"
+          }
+
+          transition_id() {
+            jira "$JIRA_API/issue/$1/transitions" \
+              | jq -r --arg n "$2" '.transitions[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' | head -n1
+          }
+
+          pr_comment() {
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  [dry run] would comment on PR #$1: $2"
+            else
+              gh pr comment "$1" --repo "$REPO" --body "$2"
+            fi
+          }
+
+          # One lookup of the remaining open PRs, used to avoid closing a ticket another PR is still working on.
+          open_prs=$(gh pr list --repo "$REPO" --state open --limit 2000 --json number,title,headRefName)
+
+          summary="$RUNNER_TEMP/summary.md"
+          failed=0
+          fail() {
+            echo "::error::PR #$1 / $2: $3"
+            echo "| #$1 | $2 | error: $3 |" >> "$summary"
+            failed=1
+          }
+
+          echo "| PR | Ticket | Result |" > "$summary"
+          echo "| --- | --- | --- |" >> "$summary"
+
+          for pr in $(jq -r '.[] | select(.pull_request) | .number' <<< "$CLOSED_JSON"); do
+            info=$(gh pr view "$pr" --repo "$REPO" --json title,headRefName,url,state)
+            url=$(jq -r '.url' <<< "$info")
+            echo "PR #$pr: $(jq -r '.title' <<< "$info")"
+
+            if [ "$DRY_RUN" != "true" ] && [ "$(jq -r '.state' <<< "$info")" != "CLOSED" ]; then
+              echo "  not closed (state $(jq -r '.state' <<< "$info")); skipping."
+              continue
+            fi
+
+            # Branch name first, then title.
+            key=$(jq -r '.headRefName, .title' <<< "$info" \
+              | grep -oiE "${PROJECT_KEY}-[0-9]+" | head -n1 | tr '[:lower:]' '[:upper:]')
+            if [ -z "$key" ]; then
+              echo "  no $PROJECT_KEY ticket in branch or title."
+              echo "| #$pr | - | no ticket key |" >> "$summary"
+              continue
+            fi
+
+            other=$(jq -r --arg k "$key" --argjson n "$pr" \
+              '[.[] | select(.number != $n and ((.headRefName + " " + .title) | test($k + "([^0-9]|$)"; "i")))] | map("#\(.number)") | join(", ")' \
+              <<< "$open_prs")
+            if [ -n "$other" ]; then
+              echo "  $key is still referenced by open PR(s) $other; leaving the ticket open."
+              pr_comment "$pr" "Did not close **$key**: it is still linked from open PR(s) $other."
+              echo "| #$pr | $key | skipped, still open in $other |" >> "$summary"
+              continue
+            fi
+
+            issue=$(curl -sS -u "$JIRA_AUTH" -w '\n%{http_code}' "$JIRA_API/issue/$key?fields=status")
+            code=$(tail -n1 <<< "$issue")
+            if [ "$code" -ge 300 ]; then
+              echo "  Jira returned HTTP $code for $key; skipping."
+              echo "| #$pr | $key | Jira HTTP $code |" >> "$summary"
+              continue
+            fi
+            category=$(sed '$d' <<< "$issue" | jq -r '.fields.status.statusCategory.key')
+
+            if [ "$category" = "done" ]; then
+              echo "  $key is already closed."
+              pr_comment "$pr" "Linked ticket **$key** was already closed; no Jira changes made."
+              echo "| #$pr | $key | already closed |" >> "$summary"
+              continue
+            fi
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  [dry run] would label $key, comment, and close it as $RESOLUTION."
+              echo "| #$pr | $key | would close as $RESOLUTION |" >> "$summary"
+              continue
+            fi
+
+            # Edit before transitioning; Done statuses may not allow edits.
+            if ! jira -X PUT "$JIRA_API/issue/$key" -d "$(jq -n --arg f "$LABELS_FIELD" --arg labels "$JIRA_LABELS" \
+              '{update: {($f): ($labels | split(",") | map({add: (. | gsub("^\\s+|\\s+$"; ""))}))}}')"; then
+              fail "$pr" "$key" "label update failed"; continue
+            fi
+
+            jira -X POST "$JIRA_API/issue/$key/comment" -d "$(jq -n --arg url "$url" --arg days "${{ inputs.days_before_stale }}" '{body: {type: "doc", version: 1, content: [
+              {type: "paragraph", content: [
+                {type: "text", text: "Automated: closing this ticket because its pull request was closed after \($days) days of inactivity: "},
+                {type: "text", text: $url, marks: [{type: "link", attrs: {href: $url}}]}
+              ]},
+              {type: "paragraph", content: [
+                {type: "text", text: "Reopen the PR and this ticket if the work is still needed."}
+              ]}
+            ]}}')" > /dev/null || { fail "$pr" "$key" "comment failed"; continue; }
+
+            # PUB closes in two steps: any status -> Resolved -> Closed (with a resolution).
+            close_id=$(transition_id "$key" "$CLOSE_NAME")
+            if [ -z "$close_id" ]; then
+              resolve_id=$(transition_id "$key" "$RESOLVE_NAME")
+              if [ -n "$resolve_id" ]; then
+                jira -X POST "$JIRA_API/issue/$key/transitions" -d "$(jq -n --arg id "$resolve_id" '{transition: {id: $id}}')" \
+                  || { fail "$pr" "$key" "'$RESOLVE_NAME' transition failed"; continue; }
+                close_id=$(transition_id "$key" "$CLOSE_NAME")
+              fi
+            fi
+            if [ -z "$close_id" ]; then
+              echo "  no '$CLOSE_NAME' transition available for $key."
+              echo "| #$pr | $key | labeled, no close transition |" >> "$summary"
+              continue
+            fi
+            jira -X POST "$JIRA_API/issue/$key/transitions" \
+              -d "$(jq -n --arg id "$close_id" --arg r "$RESOLUTION" '{transition: {id: $id}, fields: {resolution: {name: $r}}}')" \
+              || { fail "$pr" "$key" "'$CLOSE_NAME' transition failed"; continue; }
+
+            pr_comment "$pr" "Closed linked ticket **$key** as $RESOLUTION."
+            echo "| #$pr | $key | closed as $RESOLUTION |" >> "$summary"
+          done
+
+          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+          exit "$failed"
