@@ -110,16 +110,19 @@ jobs:
             curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' "$@"
           }
 
+          # Fetch first so a failed request returns non-zero instead of an empty id.
           transition_id() {
-            jira "$JIRA_API/issue/$1/transitions" \
-              | jq -r --arg n "$2" '.transitions[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' | head -n1
+            local body
+            body=$(jira "$JIRA_API/issue/$1/transitions") || return 1
+            jq -r --arg n "$2" '.transitions[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' <<< "$body" | head -n1
           }
 
           pr_comment() {
             if [ "$DRY_RUN" = "true" ]; then
               echo "  [dry run] would comment on PR #$1: $2"
             else
-              gh pr comment "$1" --repo "$REPO" --body "$2"
+              gh pr comment "$1" --repo "$REPO" --body "$2" > /dev/null \
+                || echo "::warning::could not comment on PR #$1"
             fi
           }
 
@@ -138,7 +141,8 @@ jobs:
           echo "| --- | --- | --- |" >> "$summary"
 
           for pr in $(jq -r '.[] | select(.pull_request) | .number' <<< "$CLOSED_JSON"); do
-            info=$(gh pr view "$pr" --repo "$REPO" --json title,headRefName,url,state)
+            info=$(gh pr view "$pr" --repo "$REPO" --json title,headRefName,url,state) \
+              || { fail "$pr" "-" "could not read PR"; continue; }
             url=$(jq -r '.url' <<< "$info")
             echo "PR #$pr: $(jq -r '.title' <<< "$info")"
 
@@ -147,9 +151,10 @@ jobs:
               continue
             fi
 
-            # Branch name first, then title.
+            # Branch name first, then title. The key must not follow a letter or digit, so SUBPUB-12 is not PUB-12.
             key=$(jq -r '.headRefName, .title' <<< "$info" \
-              | grep -oiE "${PROJECT_KEY}-[0-9]+" | head -n1 | tr '[:lower:]' '[:upper:]')
+              | grep -oiE "(^|[^A-Za-z0-9])${PROJECT_KEY}-[0-9]+" | head -n1 \
+              | grep -oiE "${PROJECT_KEY}-[0-9]+" | tr '[:lower:]' '[:upper:]')
             if [ -z "$key" ]; then
               echo "  no $PROJECT_KEY ticket in branch or title."
               echo "| #$pr | - | no ticket key |" >> "$summary"
@@ -157,7 +162,7 @@ jobs:
             fi
 
             other=$(jq -r --arg k "$key" --argjson n "$pr" \
-              '[.[] | select(.number != $n and ((.headRefName + " " + .title) | test($k + "([^0-9]|$)"; "i")))] | map("#\(.number)") | join(", ")' \
+              '[.[] | select(.number != $n and ((.headRefName + " " + .title) | test("(^|[^A-Za-z0-9])" + $k + "([^0-9]|$)"; "i")))] | map("#\(.number)") | join(", ")' \
               <<< "$open_prs")
             if [ -n "$other" ]; then
               echo "  $key is still referenced by open PR(s) $other; leaving the ticket open."
@@ -166,7 +171,8 @@ jobs:
               continue
             fi
 
-            issue=$(curl -sS -u "$JIRA_AUTH" -w '\n%{http_code}' "$JIRA_API/issue/$key?fields=status")
+            issue=$(curl -sS -u "$JIRA_AUTH" -w '\n%{http_code}' "$JIRA_API/issue/$key?fields=status") \
+              || { fail "$pr" "$key" "Jira request failed"; continue; }
             code=$(tail -n1 <<< "$issue")
             if [ "$code" -ge 300 ]; then
               echo "  Jira returned HTTP $code for $key; skipping."
@@ -205,19 +211,21 @@ jobs:
             ]}}')" > /dev/null || { fail "$pr" "$key" "comment failed"; continue; }
 
             # PUB closes in two steps: any status -> Resolved -> Closed (with a resolution).
-            close_id=$(transition_id "$key" "$CLOSE_NAME")
+            close_id=$(transition_id "$key" "$CLOSE_NAME") \
+              || { fail "$pr" "$key" "could not read transitions"; continue; }
             if [ -z "$close_id" ]; then
-              resolve_id=$(transition_id "$key" "$RESOLVE_NAME")
+              resolve_id=$(transition_id "$key" "$RESOLVE_NAME") \
+                || { fail "$pr" "$key" "could not read transitions"; continue; }
               if [ -n "$resolve_id" ]; then
                 jira -X POST "$JIRA_API/issue/$key/transitions" -d "$(jq -n --arg id "$resolve_id" '{transition: {id: $id}}')" \
                   || { fail "$pr" "$key" "'$RESOLVE_NAME' transition failed"; continue; }
-                close_id=$(transition_id "$key" "$CLOSE_NAME")
+                close_id=$(transition_id "$key" "$CLOSE_NAME") \
+                  || { fail "$pr" "$key" "could not read transitions"; continue; }
               fi
             fi
             if [ -z "$close_id" ]; then
-              echo "  no '$CLOSE_NAME' transition available for $key."
-              echo "| #$pr | $key | labeled, no close transition |" >> "$summary"
-              continue
+              # The ticket is already labeled and commented, so flag it for a manual close.
+              fail "$pr" "$key" "labeled, but no '$CLOSE_NAME' transition available"; continue
             fi
             jira -X POST "$JIRA_API/issue/$key/transitions" \
               -d "$(jq -n --arg id "$close_id" --arg r "$RESOLUTION" '{transition: {id: $id}, fields: {resolution: {name: $r}}}')" \
