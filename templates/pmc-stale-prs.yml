@@ -1,0 +1,38 @@
+name: PMC Stale PRs
+
+on:
+  schedule:
+    - cron: '0 14 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only log what would happen'
+        type: boolean
+        default: true
+      operations_per_run:
+        description: 'GitHub API operation budget (about 6 per PR); raise it to dry-run the whole backlog'
+        type: number
+        default: 100
+
+permissions:
+  actions: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: pmc-stale-prs
+  cancel-in-progress: false
+
+jobs:
+  stale-prs:
+    name: Stale PRs
+    uses: penske-media-corp/github-workflows-wordpress/.github/workflows/stale-prs.yml@main
+    with:
+      # Dry run until the repository variable STALE_PRS_LIVE is set to 'true'.
+      # A manual run can always force a dry run.
+      dry_run: ${{ inputs.dry_run || vars.STALE_PRS_LIVE != 'true' }}
+      operations_per_run: ${{ inputs.operations_per_run || 100 }}
+    secrets:
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_CLOUD_ID: ${{ secrets.JIRA_CLOUD_ID }}
