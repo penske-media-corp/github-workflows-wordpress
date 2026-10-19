@@ -42,6 +42,10 @@ on:
         description: 'Comma-separated labels added to the linked ticket.'
         type: string
         default: 'stale-pr-closed,exclude-from-productivity-report'
+      stale_jira_labels:
+        description: 'Comma-separated labels added to the linked ticket when its PR is marked stale.'
+        type: string
+        default: 'stale'
       labels_field:
         description: 'Jira field id that receives the labels. PUB uses its label-type "Tags" field, customfield_10057.'
         type: string
@@ -64,6 +68,7 @@ jobs:
     name: Mark and close stale PRs
     runs-on: ubuntu-latest
     outputs:
+      staled: ${{ steps.stale.outputs.staled-issues-prs }}
       closed: ${{ steps.stale.outputs.closed-issues-prs }}
     steps:
       - id: stale
@@ -84,6 +89,98 @@ jobs:
             When it closes, the linked ${{ inputs.project_key }} ticket will be closed as ${{ inputs.resolution }}.
           close-pr-message: >-
             Closed after ${{ inputs.days_before_stale }} days of inactivity. Reopen it if the work is still needed.
+
+  flag-jira-tickets:
+    name: Flag linked Jira tickets as stale
+    needs: mark-stale
+    if: needs.mark-stale.outputs.staled != '' && needs.mark-stale.outputs.staled != '[]'
+    runs-on: ubuntu-latest
+    env:
+      JIRA_API: https://api.atlassian.com/ex/jira/${{ secrets.JIRA_CLOUD_ID }}/rest/api/3
+      JIRA_AUTH: ${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      STALED_JSON: ${{ needs.mark-stale.outputs.staled }}
+      DRY_RUN: ${{ inputs.dry_run }}
+      PROJECT_KEY: ${{ inputs.project_key }}
+      RESOLUTION: ${{ inputs.resolution }}
+      STALE_LABELS: ${{ inputs.stale_jira_labels }}
+      LABELS_FIELD: ${{ inputs.labels_field }}
+    steps:
+      - name: Tag and comment on each linked ticket
+        run: |
+          jira() {
+            curl -sS --fail-with-body -u "$JIRA_AUTH" -H 'Content-Type: application/json' "$@"
+          }
+
+          summary="$RUNNER_TEMP/summary.md"
+          failed=0
+          fail() {
+            echo "::error::PR #$1 / $2: $3"
+            echo "| #$1 | $2 | error: $3 |" >> "$summary"
+            failed=1
+          }
+
+          echo "| Stale PR | Ticket | Result |" > "$summary"
+          echo "| --- | --- | --- |" >> "$summary"
+
+          for pr in $(jq -r '.[] | select(.pull_request) | .number' <<< "$STALED_JSON"); do
+            info=$(gh pr view "$pr" --repo "$REPO" --json title,headRefName,url) \
+              || { fail "$pr" "-" "could not read PR"; continue; }
+            url=$(jq -r '.url' <<< "$info")
+            echo "PR #$pr: $(jq -r '.title' <<< "$info")"
+
+            # Same key matching as close-jira-tickets: branch first, then title; SUBPUB-12 is not PUB-12.
+            key=$(jq -r '.headRefName, .title' <<< "$info" \
+              | grep -oiE "(^|[^A-Za-z0-9])${PROJECT_KEY}-[0-9]+" | head -n1 \
+              | grep -oiE "${PROJECT_KEY}-[0-9]+" | tr '[:lower:]' '[:upper:]')
+            if [ -z "$key" ]; then
+              echo "  no $PROJECT_KEY ticket in branch or title."
+              echo "| #$pr | - | no ticket key |" >> "$summary"
+              continue
+            fi
+
+            issue=$(curl -sS -u "$JIRA_AUTH" -w '\n%{http_code}' "$JIRA_API/issue/$key?fields=status") \
+              || { fail "$pr" "$key" "Jira request failed"; continue; }
+            code=$(tail -n1 <<< "$issue")
+            if [ "$code" -ge 300 ]; then
+              echo "  Jira returned HTTP $code for $key; skipping."
+              echo "| #$pr | $key | Jira HTTP $code |" >> "$summary"
+              continue
+            fi
+            if [ "$(sed '$d' <<< "$issue" | jq -r '.fields.status.statusCategory.key')" = "done" ]; then
+              echo "  $key is already closed."
+              echo "| #$pr | $key | already closed |" >> "$summary"
+              continue
+            fi
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  [dry run] would tag $key with $STALE_LABELS and comment."
+              echo "| #$pr | $key | would tag and comment |" >> "$summary"
+              continue
+            fi
+
+            if ! jira -X PUT "$JIRA_API/issue/$key" -d "$(jq -n --arg f "$LABELS_FIELD" --arg labels "$STALE_LABELS" \
+              '{update: {($f): ($labels | split(",") | map({add: (. | gsub("^\\s+|\\s+$"; ""))}))}}')"; then
+              fail "$pr" "$key" "label update failed"; continue
+            fi
+
+            jira -X POST "$JIRA_API/issue/$key/comment" -d "$(jq -n --arg url "$url" \
+              --arg days "${{ inputs.days_before_stale }}" --arg close "${{ inputs.days_before_close }}" '{body: {type: "doc", version: 1, content: [
+              {type: "paragraph", content: [
+                {type: "text", text: "Automated: this ticket'\''s pull request was marked stale after \($days) days of inactivity: "},
+                {type: "text", text: $url, marks: [{type: "link", attrs: {href: $url}}]}
+              ]},
+              {type: "paragraph", content: [
+                {type: "text", text: "If the PR has no activity in the next \($close) days it will be closed, and this ticket will be closed as \(env.RESOLUTION). Push a commit, comment on the PR, or add the keep-open label to keep it open."}
+              ]}
+            ]}}')" > /dev/null || { fail "$pr" "$key" "comment failed"; continue; }
+
+            echo "| #$pr | $key | tagged and commented |" >> "$summary"
+          done
+
+          cat "$summary" >> "$GITHUB_STEP_SUMMARY"
+          exit "$failed"
 
   close-jira-tickets:
     name: Close linked Jira tickets
