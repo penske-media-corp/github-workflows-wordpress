@@ -87,7 +87,8 @@ those repos before assuming their behaviour.
 - Never hand-edit generated files (the `.claude/rules/` and `.cursor/rules/` views end with an `OAT-managed`
   comment; `.codex/config.toml` has no marker). Edit the canonical rule and sync again.
 - Commit the canonical rule, the generated files, and `.oat/sync/manifest.json` together.
-- `oat sync --scope project --dry-run` must show no changes before you push; anything it lists is drift.
+- `oat sync --scope project --dry-run` must end with "No changes to apply." before you push. `skip ... (already in
+  sync)` lines are expected; any other planned write is drift.
 - When you add, rename, remove, or re-glob a rule, update the rule list (with globs) under "Layout and scoped
   instructions". Codex reads only `AGENTS.md`.
 
