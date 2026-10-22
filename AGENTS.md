@@ -71,7 +71,7 @@ done until it's fixed.
 - Check what covers the paths you changed: this file, the `AGENTS.md` in each changed directory and its parents, and
   every `.agents/rules/*.md` whose `globs:` match a changed file.
 - Fix or delete any line your change made false (commands, paths, versions, flags, workflow names, owners). Find
-  leftovers of renamed or removed names with `git grep -n '<old-name>' -- '*AGENTS.md' '.agents/rules/'`.
+  leftovers of renamed or removed names with `git grep -n -F -e '<old-name>' -- '*AGENTS.md' '.agents/rules/'`.
 - Create new instruction files when warranted; you don't need to be asked:
   - a directory with its own commands, runtime, or footguns gets a nested `AGENTS.md`;
   - a convention that spans directories gets a `.agents/rules/<topic>.md` with `globs:`;
