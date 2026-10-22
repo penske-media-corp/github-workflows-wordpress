@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "oatVersion": "0.3.22",
+  "entries": [
+    {
+      "canonicalPath": ".agents/rules/actions-run-steps.md",
+      "providerPath": ".claude/rules/actions-run-steps.md",
+      "provider": "claude",
+      "contentType": "rule",
+      "contentHash": "9e391773102346809d3ee1b56ffa35c6fa4086ba8e4f02f60654301330bc88e6",
+      "isFile": true,
+      "lastSynced": "2026-10-22T01:35:11.769Z",
+      "strategy": "copy"
+    },
+    {
+      "canonicalPath": ".agents/rules/composite-actions.md",
+      "providerPath": ".claude/rules/composite-actions.md",
+      "provider": "claude",
+      "contentType": "rule",
+      "contentHash": "bec9f33cb3aa3877af84b8252eba04aa55ed4f0feddd25eb2ac5b62bd3d83106",
+      "isFile": true,
+      "lastSynced": "2026-10-22T01:35:11.770Z",
+      "strategy": "copy"
+    },
+    {
+      "canonicalPath": ".agents/rules/actions-run-steps.md",
+      "providerPath": ".cursor/rules/actions-run-steps.mdc",
+      "provider": "cursor",
+      "contentType": "rule",
+      "contentHash": "822eec72a0f27c349280bff11d2b2e5a64b92c2f66319438ff8217c401413891",
+      "isFile": true,
+      "lastSynced": "2026-10-22T01:35:11.771Z",
+      "strategy": "copy"
+    },
+    {
+      "canonicalPath": ".agents/rules/composite-actions.md",
+      "providerPath": ".cursor/rules/composite-actions.mdc",
+      "provider": "cursor",
+      "contentType": "rule",
+      "contentHash": "e27aaac42e1322dc58f3834ad0d73e99e3e61f4301704f156f08cb8919c2977b",
+      "isFile": true,
+      "lastSynced": "2026-10-22T01:35:11.772Z",
+      "strategy": "copy"
+    }
+  ],
+  "collections": [],
+  "lastUpdated": "2026-10-22T01:35:11.772Z"
+}
