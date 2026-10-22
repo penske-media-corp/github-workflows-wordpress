@@ -79,8 +79,7 @@ done until it's fixed.
 
   List every new file in "Layout and scoped instructions" (Codex finds rules only through that list), and keep its
   rule entries and globs current when a rule is renamed, removed, or re-globbed.
-- After creating or changing a rule, run `npx @open-agent-toolkit/cli sync --scope project` and commit the rule, the
-  generated views, and `.oat/sync/manifest.json` together (details in "Instruction rules (OAT sync)").
+- After adding, editing, renaming, or removing a rule, sync and commit as described in "Instruction rules (OAT sync)".
 - Record durable facts an agent would otherwise get wrong; leave out task notes and guesses.
 - In the PR description, list the instruction files you created or updated, or write "No instruction changes
   needed".
@@ -106,11 +105,13 @@ those repos before assuming their behaviour.
 ## Instruction rules (OAT sync)
 
 - Author path-scoped rules only in `.agents/rules/*.md` (frontmatter `activation: glob`, `globs`, `description`).
-- `npx @open-agent-toolkit/cli sync --scope project` regenerates the provider views: `.claude/rules/*.md`,
-  `.cursor/rules/*.mdc`, `.codex/config.toml`. Providers are set in
-  [`.oat/sync/config.json`](.oat/sync/config.json).
+- After adding, editing, renaming, or removing a rule, run `npx @open-agent-toolkit/cli sync --scope project` to
+  regenerate the provider views: `.claude/rules/*.md`, `.cursor/rules/*.mdc`, `.codex/config.toml`. Providers are
+  set in [`.oat/sync/config.json`](.oat/sync/config.json).
 - Never hand-edit generated files (the `.claude/rules/` and `.cursor/rules/` views end with an `OAT-managed`
   comment; `.codex/config.toml` has no marker). Edit the canonical rule and sync again.
+- Commit the canonical rule changes (including deletions), the generated files, and `.oat/sync/manifest.json`
+  together.
 - `npx @open-agent-toolkit/cli sync --scope project --dry-run` must end with "No changes to apply." before you
   push. `skip ... (already in sync)` lines are expected; any other planned write is drift.
 
