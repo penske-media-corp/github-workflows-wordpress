@@ -13,10 +13,10 @@ here runs on this repository. See [`README.md`](README.md) for purpose and usage
   default. Details in [`.github/workflows/AGENTS.md`](.github/workflows/AGENTS.md).
 - **Public repository.** Never commit secrets, tokens, credentials, private hostnames, or internal-only data.
   Secrets reach workflows only through `secrets:` (reusable workflows) or inputs (composites).
-- **Some paths deploy to production or write to external systems:** `composites/sync-vip-prod` (pushes to VIP
-  `production` branches), `build-larva.yml` (empties and refills an S3 bucket), `vercel.yml` (`--prod` deploys on
-  `main`/`master`), `stale-prs.yml` and `jira-sync.yml` (close PRs, change Jira issues). Never point them at real
-  destinations to test, and call out changes to them in the PR.
+- **Some paths deploy to production or write to external systems:** `composites/sync-vip-prod` (pushes to live VIP
+  branches, `master` or `production`), `build-larva.yml` (empties and refills an S3 bucket), `vercel.yml` (`--prod`
+  deploys on `main`/`master`), `stale-prs.yml` and `jira-sync.yml` (close PRs, change Jira issues). Never point them
+  at real destinations to test, and call out changes to them in the PR.
 - `@penske-media-corp/wp-admins` owns all paths ([`.github/CODEOWNERS`](.github/CODEOWNERS)) and is requested for
   review automatically. Get their review before merging.
 - Don't interpolate `${{ }}` expressions holding caller, event, or ref-name data (inputs, PR fields,
@@ -63,8 +63,9 @@ Nested files add to this one and win for their scope. Read them before editing i
 
 ## Cross-repo dependencies
 
-Code these workflows rely on but that lives elsewhere, all referenced at `@main`. Check those repos before assuming
-their behaviour.
+Code these workflows rely on but that lives elsewhere. The setup action and pmc-github-actions are referenced at
+`@main`; pmc-jenkins-scripts and pmc-ai-pr-summarizer are checked out with no `ref` (their default branch). Check
+those repos before assuming their behaviour.
 
 - `penske-media-corp/github-action-wordpress-test-setup`: the "Prepare environment" step. The `pmc-manifest` and
   `pmc-test-*` commands the CI workflows source are not defined in this repo and are only used after that step, so
@@ -83,7 +84,8 @@ their behaviour.
 - Author path-scoped rules only in `.agents/rules/*.md` (frontmatter `activation: glob`, `globs`, `description`).
 - Run `oat sync --scope project` to regenerate the provider views: `.claude/rules/*.md`, `.cursor/rules/*.mdc`,
   `.codex/config.toml`. Providers are set in [`.oat/sync/config.json`](.oat/sync/config.json).
-- Never hand-edit generated files (they end with an `OAT-managed` comment). Edit the canonical rule and sync again.
+- Never hand-edit generated files (the `.claude/rules/` and `.cursor/rules/` views end with an `OAT-managed`
+  comment; `.codex/config.toml` has no marker). Edit the canonical rule and sync again.
 - Commit the canonical rule, the generated files, and `.oat/sync/manifest.json` together.
 - `oat sync --scope project --dry-run` must show no changes before you push; anything it lists is drift.
 - When you add, rename, remove, or re-glob a rule, update the rule list (with globs) under "Layout and scoped

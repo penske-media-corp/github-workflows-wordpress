@@ -6,8 +6,9 @@ production deploy path for pmc-plugins and the brand themes. Adds to the root `A
 
 ## Non-negotiables
 
-- Any change ships on the consumers' next push to `main` and runs against VIP `production` branches.
-- Never run or test it against a real `wpcomvip/*` repository or `production` branch.
+- Any change ships on the consumers' next push to `main` and pushes to live VIP branches (`master` for most brands,
+  `production` for some; see each caller's matrix).
+- Never run or test it against any real `wpcomvip/*` repository, whatever the branch.
 - Don't add force-push, history rewrites, or deletion outside the destination directory. Keep the
   "No changes to commit" early exit.
 - `SSH_KEY` needs read/write access to `destination_repo` (the action pushes there) and read access to
@@ -56,6 +57,6 @@ See [`action.yml`](action.yml).
 
 1. Keep the step order: checkouts, then the sync, then the failure-only notification steps.
 2. Review by hand against rule `composite-actions`; `actionlint` cannot lint `action.yml`.
-3. Exercise it from a consumer branch with `uses: penske-media-corp/github-workflows-wordpress/composites/sync-vip-prod@<branch>`
-   and a non-production destination repository or branch. Pointing a branch template at a `wpcomvip/<brand>`
-   `production` branch is a real deploy.
+3. Exercise it from a consumer branch with `uses: penske-media-corp/github-workflows-wordpress/composites/sync-vip-prod@<branch>`,
+   a disposable non-production destination repository, and a dedicated test branch in it. Any `wpcomvip/<brand>`
+   destination is live: callers deploy to `master` or `production` depending on the brand.
