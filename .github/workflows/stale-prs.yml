@@ -64,7 +64,7 @@ jobs:
     name: Mark and close stale PRs
     runs-on: ubuntu-latest
     outputs:
-      closed: ${{ steps.stale.outputs.closed-issues-prs }}
+      closed: ${{ steps.closed.outputs.prs }}
     steps:
       - id: stale
         uses: actions/stale@v11
@@ -84,6 +84,16 @@ jobs:
             When it closes, the linked ${{ inputs.project_key }} ticket will be closed as ${{ inputs.resolution }}.
           close-pr-message: >-
             Closed after ${{ inputs.days_before_stale }} days of inactivity. Reopen it if the work is still needed.
+
+      # The raw output carries every closed PR's body; GitHub drops a job output that contains
+      # a secret value, which silently skipped the Jira job. Pass only the PR numbers.
+      - id: closed
+        if: always()
+        env:
+          RAW: ${{ steps.stale.outputs.closed-issues-prs }}
+        run: |
+          prs=$(jq -c '[.[]? | select(.pull_request) | {number, pull_request: true}]' <<< "${RAW:-[]}")
+          echo "prs=$prs" >> "$GITHUB_OUTPUT"
 
   close-jira-tickets:
     name: Close linked Jira tickets
