@@ -66,6 +66,9 @@ jobs:
     outputs:
       closed: ${{ steps.closed.outputs.prs }}
     steps:
+      - id: started
+        run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
       - id: stale
         uses: actions/stale@v11
         with:
@@ -85,14 +88,20 @@ jobs:
           close-pr-message: >-
             Closed after ${{ inputs.days_before_stale }} days of inactivity. Reopen it if the work is still needed.
 
-      # The raw output carries every closed PR's body; GitHub drops a job output that contains
-      # a secret value, which silently skipped the Jira job. Pass only the PR numbers.
+      # The action's closed-issues-prs output holds every closed PR's full body. That breaks
+      # the job twice: GitHub drops an output containing a secret value, and a large value
+      # exceeds the per-variable size limit when passed to a step. Query the PR numbers instead.
       - id: closed
         if: always()
         env:
-          RAW: ${{ steps.stale.outputs.closed-issues-prs }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          STARTED_AT: ${{ steps.started.outputs.at }}
+          LABEL: ${{ inputs.stale_label }}
         run: |
-          prs=$(jq -c '[.[]? | select(.pull_request) | {number, pull_request: true}]' <<< "${RAW:-[]}")
+          prs=$(gh pr list --repo "$REPO" --state closed --label "$LABEL" --limit 500 \
+            --search "closed:>=$STARTED_AT" --json number,closedAt,mergedAt \
+            | jq -c --arg t "$STARTED_AT" '[.[] | select(.mergedAt == null and .closedAt >= $t) | {number, pull_request: true}]')
           echo "prs=$prs" >> "$GITHUB_OUTPUT"
 
   close-jira-tickets:
