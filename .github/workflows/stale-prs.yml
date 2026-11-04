@@ -119,6 +119,31 @@ jobs:
             | jq -c --arg t "$STARTED_AT" '[.[] | select(.mergedAt == null and .closedAt >= $t) | {number, pull_request: true}]')
           echo "prs=$prs" >> "$GITHUB_OUTPUT"
 
+      # A uses: step can't loop, so if the last pass still closed PRs, dispatch the calling
+      # workflow again to continue. Every run that dispatches closed at least one PR, so the
+      # chain ends once a run's last pass closes nothing. The caller needs a workflow_dispatch
+      # trigger with dry_run and operations_per_run inputs (see templates/pmc-stale-prs.yml).
+      # This Jira job still runs; a concurrency group in the caller queues the next run behind it.
+      - name: Continue in a new run if PRs may still be skipped
+        if: ${{ !inputs.dry_run && steps.stale-pass-3.outcome == 'success' && steps.stale-pass-3.outputs.closed-issues-prs != '[]' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          OPERATIONS: ${{ inputs.operations_per_run }}
+        run: |
+          # WORKFLOW_REF is owner/repo/.github/workflows/file.yml@refs/heads/branch
+          file=${WORKFLOW_REF#"$REPO"/}
+          workflow=$(basename "${file%%@*}")
+          ref=${WORKFLOW_REF#*@}
+          ref=${ref#refs/heads/}
+          ref=${ref#refs/tags/}
+          echo "Last pass still closed PRs; dispatching $workflow on $ref to continue."
+          gh workflow run "$workflow" --repo "$REPO" --ref "$ref" \
+            -f dry_run=false -f operations_per_run="$OPERATIONS" \
+            || { echo "::warning::could not dispatch $workflow; the next scheduled run will continue"; exit 1; }
+
   close-jira-tickets:
     name: Close linked Jira tickets
     needs: mark-stale

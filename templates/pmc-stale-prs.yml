@@ -31,7 +31,8 @@ jobs:
       # Dry run until the repository variable STALE_PRS_LIVE is set to 'true'.
       # A manual run can always force a dry run.
       dry_run: ${{ inputs.dry_run || vars.STALE_PRS_LIVE != 'true' }}
-      operations_per_run: ${{ inputs.operations_per_run || 3000 }}
+      # Dispatch inputs arrive as strings; the called workflow requires a number.
+      operations_per_run: ${{ fromJSON(inputs.operations_per_run || 3000) }}
     secrets:
       JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
       JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}

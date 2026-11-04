@@ -37,8 +37,11 @@ It runs as a dry run until the consuming repository sets the
 Each pass is capped by `operations_per_run` (default 3000, about 6 per PR), so a
 larger backlog is processed in batches. Closing PRs while paging through the list
 makes `actions/stale` skip PRs, so a live run repeats the pass up to twice more
-while the previous pass closed something. Anything still skipped is picked up by
-the next scheduled run.
+while the previous pass closed something. If the third pass still closed PRs, the
+job dispatches the calling workflow again (with `dry_run=false`), and repeats
+until a run's last pass closes nothing. This needs the caller's
+`workflow_dispatch` trigger with the `dry_run` and `operations_per_run` inputs,
+as in the template.
 
 A dry run labels, comments on, and closes nothing. Its job summary lists every PR
 that would be closed and what would happen to its ticket. Dry runs don't save
