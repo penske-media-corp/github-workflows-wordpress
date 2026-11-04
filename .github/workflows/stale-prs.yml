@@ -21,9 +21,9 @@ on:
         type: string
         default: 'keep-open'
       operations_per_run:
-        description: 'GitHub API operation budget per run; limits how many PRs are processed in one batch.'
+        description: 'GitHub API operation budget per pass; limits how many PRs are processed in one batch.'
         type: number
-        default: 100
+        default: 3000
       project_key:
         type: string
         default: 'PUB'
@@ -71,7 +71,7 @@ jobs:
 
       - id: stale
         uses: actions/stale@v11
-        with:
+        with: &stale-with
           debug-only: ${{ inputs.dry_run }}
           days-before-issue-stale: -1
           days-before-issue-close: -1
@@ -87,6 +87,21 @@ jobs:
             When it closes, the linked ${{ inputs.project_key }} ticket will be closed as ${{ inputs.resolution }}.
           close-pr-message: >-
             Closed after ${{ inputs.days_before_stale }} days of inactivity. Reopen it if the work is still needed.
+
+      # actions/stale pages through open PRs 100 at a time while closing them. Each close shifts
+      # the later PRs up a page, so the next page request skips as many PRs as were just closed.
+      # Re-run the action while the previous pass closed something; each pass picks up what the
+      # one before it skipped. A dry run closes nothing, so it never needs another pass.
+      # An empty output (dropped because it contained a secret) also triggers another pass.
+      - id: stale-pass-2
+        if: ${{ !inputs.dry_run && steps.stale.outputs.closed-issues-prs != '[]' }}
+        uses: actions/stale@v11
+        with: *stale-with
+
+      - id: stale-pass-3
+        if: ${{ !inputs.dry_run && steps.stale-pass-2.outcome == 'success' && steps.stale-pass-2.outputs.closed-issues-prs != '[]' }}
+        uses: actions/stale@v11
+        with: *stale-with
 
       # The action's closed-issues-prs output holds every closed PR's full body. That breaks
       # the job twice: GitHub drops an output containing a secret value, and a large value
