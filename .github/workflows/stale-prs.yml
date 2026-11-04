@@ -106,6 +106,10 @@ jobs:
       # The action's closed-issues-prs output holds every closed PR's full body. That breaks
       # the job twice: GitHub drops an output containing a secret value, and a large value
       # exceeds the per-variable size limit when passed to a step. Query the PR numbers instead.
+      # Use the pulls API, not search: the search index has no close date for many PRs closed
+      # by the action, so a closed:>= query returned 0 of 20 and 41 of 148 closed PRs.
+      # PRs closed during the run were updated after STARTED_AT, so stop at the first page
+      # that reaches older updates.
       - id: closed
         if: always()
         env:
@@ -114,9 +118,17 @@ jobs:
           STARTED_AT: ${{ steps.started.outputs.at }}
           LABEL: ${{ inputs.stale_label }}
         run: |
-          prs=$(gh pr list --repo "$REPO" --state closed --label "$LABEL" --limit 500 \
-            --search "closed:>=$STARTED_AT" --json number,closedAt,mergedAt \
-            | jq -c --arg t "$STARTED_AT" '[.[] | select(.mergedAt == null and .closedAt >= $t) | {number, pull_request: true}]')
+          prs='[]'
+          for page in $(seq 1 100); do
+            batch=$(gh api "repos/$REPO/pulls?state=closed&sort=updated&direction=desc&per_page=100&page=$page")
+            prs=$(jq -c --argjson acc "$prs" --arg t "$STARTED_AT" --arg l "$LABEL" \
+              '$acc + [.[] | select(.merged_at == null and .closed_at >= $t and any(.labels[]; .name == $l)) | {number, pull_request: true}]' \
+              <<< "$batch")
+            if [ "$(jq length <<< "$batch")" -lt 100 ] || [[ "$(jq -r '.[-1].updated_at' <<< "$batch")" < "$STARTED_AT" ]]; then
+              break
+            fi
+          done
+          echo "Found $(jq length <<< "$prs") PRs closed since $STARTED_AT."
           echo "prs=$prs" >> "$GITHUB_OUTPUT"
 
       # A uses: step can't loop, so if the last pass still closed PRs, dispatch the calling
