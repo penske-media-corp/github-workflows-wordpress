@@ -21,9 +21,9 @@ on:
         type: string
         default: 'keep-open'
       operations_per_run:
-        description: 'GitHub API operation budget per run; limits how many PRs are processed in one batch.'
+        description: 'GitHub API operation budget per pass; limits how many PRs are processed in one batch.'
         type: number
-        default: 100
+        default: 3000
       project_key:
         type: string
         default: 'PUB'
@@ -71,7 +71,7 @@ jobs:
 
       - id: stale
         uses: actions/stale@v11
-        with:
+        with: &stale-with
           debug-only: ${{ inputs.dry_run }}
           days-before-issue-stale: -1
           days-before-issue-close: -1
@@ -88,6 +88,21 @@ jobs:
           close-pr-message: >-
             Closed after ${{ inputs.days_before_stale }} days of inactivity. Reopen it if the work is still needed.
 
+      # actions/stale pages through open PRs 100 at a time while closing them. Each close shifts
+      # the later PRs up a page, so the next page request skips as many PRs as were just closed.
+      # Re-run the action while the previous pass closed something; each pass picks up what the
+      # one before it skipped. A dry run closes nothing, so it never needs another pass.
+      # An empty output (dropped because it contained a secret) also triggers another pass.
+      - id: stale-pass-2
+        if: ${{ !inputs.dry_run && steps.stale.outputs.closed-issues-prs != '[]' }}
+        uses: actions/stale@v11
+        with: *stale-with
+
+      - id: stale-pass-3
+        if: ${{ !inputs.dry_run && steps.stale-pass-2.outcome == 'success' && steps.stale-pass-2.outputs.closed-issues-prs != '[]' }}
+        uses: actions/stale@v11
+        with: *stale-with
+
       # The action's closed-issues-prs output holds every closed PR's full body. That breaks
       # the job twice: GitHub drops an output containing a secret value, and a large value
       # exceeds the per-variable size limit when passed to a step. Query the PR numbers instead.
@@ -103,6 +118,31 @@ jobs:
             --search "closed:>=$STARTED_AT" --json number,closedAt,mergedAt \
             | jq -c --arg t "$STARTED_AT" '[.[] | select(.mergedAt == null and .closedAt >= $t) | {number, pull_request: true}]')
           echo "prs=$prs" >> "$GITHUB_OUTPUT"
+
+      # A uses: step can't loop, so if the last pass still closed PRs, dispatch the calling
+      # workflow again to continue. Every run that dispatches closed at least one PR, so the
+      # chain ends once a run's last pass closes nothing. The caller needs a workflow_dispatch
+      # trigger with dry_run and operations_per_run inputs (see templates/pmc-stale-prs.yml).
+      # This Jira job still runs; a concurrency group in the caller queues the next run behind it.
+      - name: Continue in a new run if PRs may still be skipped
+        if: ${{ !inputs.dry_run && steps.stale-pass-3.outcome == 'success' && steps.stale-pass-3.outputs.closed-issues-prs != '[]' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          OPERATIONS: ${{ inputs.operations_per_run }}
+        run: |
+          # WORKFLOW_REF is owner/repo/.github/workflows/file.yml@refs/heads/branch
+          file=${WORKFLOW_REF#"$REPO"/}
+          workflow=$(basename "${file%%@*}")
+          ref=${WORKFLOW_REF#*@}
+          ref=${ref#refs/heads/}
+          ref=${ref#refs/tags/}
+          echo "Last pass still closed PRs; dispatching $workflow on $ref to continue."
+          gh workflow run "$workflow" --repo "$REPO" --ref "$ref" \
+            -f dry_run=false -f operations_per_run="$OPERATIONS" \
+            || { echo "::warning::could not dispatch $workflow; the next scheduled run will continue"; exit 1; }
 
   close-jira-tickets:
     name: Close linked Jira tickets
